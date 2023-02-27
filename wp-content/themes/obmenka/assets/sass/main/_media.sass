@@ -1,0 +1,381 @@
+@media (max-width: 1440px)
+    .container
+        width: 1140px
+    .button
+        padding: 10px 18px
+    .header
+        padding: 20px 0px
+        .container
+            gap: 12px
+        &__logo 
+            max-width: 190px
+        &__nav 
+            ul 
+                gap: 14px
+    .main
+        &__promo 
+            padding: 40px 0px
+            min-height: 650px
+            &-undertitle
+                margin: 20px 0px 12px
+            &-arrow 
+                margin: 40px auto 0px
+        &__ways
+            &-blocks 
+                gap: 15px
+            &-item 
+                width: 44%
+                min-height: 300px 
+                padding: 32px
+                &-title 
+                    margin-bottom: 25px
+        &__reviews
+            &-slider 
+                &-slide 
+                    gap: 10px
+        &__gold 
+            &-blocks 
+                gap: 50px 155px
+            &-item 
+                .line
+                    width: 261px 
+                    left: calc(100% - 56px)
+        &__products
+            &-item 
+                max-width: 500px
+    .footer
+        &__top 
+            padding: 12px 0px
+@media (max-width: 1200px)
+    .container
+        width: 960px
+    .button
+        &_arrow 
+            span 
+                width: 34px
+                height: 34px
+    .text 
+        &_fz
+            &12 
+                font-size: 12px
+                line-height: 15px
+            &14
+                font-size: 12px
+                line-height: 15px
+            &16
+                font-size: 13px
+                line-height: 17px
+            &18
+                font-size: 16px
+                line-height: 22px
+            &20
+                font-size: 17px
+                line-height: 22px
+            &28
+                font-size: 22px
+                line-height: 29px
+            &38 
+                font-size: 24px
+                line-height: 100%
+            &44
+                font-size: 32px
+                line-height: 100%
+            &120
+                font-size: 88px
+                line-height: 100%
+    .header
+        padding: 13px 0px
+        .container 
+            gap: 10px
+        &__logo 
+            max-width: 174px
+        &__nav 
+            ul 
+                gap: 14px
+    .main
+        &__promo 
+            min-height: 520px
+            &-arrow 
+                width: 44px
+                height: 44px
+        &__ways
+            padding: 60px 0px
+            &-blocks 
+                gap: 10px
+                margin-top: 35px
+            &-item 
+                min-height: 240px
+                padding: 22px
+                &-title 
+                    margin-bottom: 14px
+        &__reviews
+            padding: 60px 0px 90px
+            &-slider 
+                margin-top: 40px
+                &-slide 
+                    grid-template: auto / repeat(2, 1fr)
+        &__gold 
+            padding: 60px 0px 70px
+            &-item 
+                &-title 
+                    margin: 12px 0px 7px
+        &__products 
+            padding: 60px 0px 90px
+            &-logo 
+                width: 500px
+            &-title 
+                margin: 40px 0px
+            &-blocks 
+                padding: 22px
+                gap: 22px 0px
+            &-item 
+                max-width: 460px
+                &-point 
+                    gap: 14px 
+                    padding-left: 7px
+                    margin-bottom: 17px
+                &-number 
+                    min-width: 27px
+                    min-height: 27px
+                &-title 
+                    margin-bottom: 23px
+                    gap: 10px
+                    .icon 
+                        min-width: 42px 
+                        min-height: 42px
+        &__call 
+            padding: 60px 0px
+            &-block 
+                margin-top: 35px
+            &-image 
+                width: 200px
+            &-type 
+                padding: 17px
+                width: 332px
+                max-width: 360px
+    .footer
+        &__bott 
+            padding: 20px
+@media (max-width: 992px)
+    .container
+        width: 720px
+    header 
+        overflow: visible
+    .header
+        position: fixed
+        top: 0
+        width: 100%
+        z-index: 10
+        .container
+            position: static
+        &__hamburger, &__right 
+            display: flex
+        &__right 
+            align-items: center
+            gap: 20px
+        &__nav 
+            position: absolute
+            top: 100%
+            background-color: #fff
+            border-radius: 0px 0px 0px 20px
+            padding: 20px 51px
+            right: -100%
+            transition: 0.3s all 
+            &.active
+                right: 0%
+            ul 
+                font-size: 17px
+                gap: 23px
+                flex-direction: column
+                align-items: flex-end
+                li 
+                    position: relative
+                    &::after 
+                        position: absolute
+                        top: 50%
+                        transform: translateY(-50%)
+                        content: ''
+                        height: 1px
+                        width: 21px 
+                        background-color: rgba(0, 0, 0, 0.3)
+                        left: calc(100% + 10px)
+    .main 
+        &__promo 
+            background-color: #F2FAFF
+            &-title 
+                margin-top: 314px
+            &-back 
+                display: none
+                object-position: top
+                z-index: 0
+                object-position: 0 -50px
+                &.mob 
+                    display: inline-block
+            &-text 
+                position: relative
+                max-width: 95%
+        &__ways
+            &-item 
+                min-height: 200px 
+                padding: 13px
+                ul, ol 
+                    li 
+                        margin-bottom: 0
+                &-text
+                    max-width: 220px 
+        &__reviews
+            &-slider 
+                &-item 
+                    padding: 16px
+                    &-top 
+                        gap: 8px 
+                        padding-bottom: 11px
+                    &-date 
+                        margin-top: 0
+                    &-body 
+                        padding-top: 11px
+                    &-link 
+                        margin-top: 11px
+                &-points 
+                    gap: 6px 
+                    margin: 28px 0px
+                    span 
+                        width: 8px
+                        height: 8px
+        &__gold 
+            &-item 
+                .line 
+                    display: none
+                &-image 
+                    width: 150px
+            &-blocks 
+                gap: 30px 20px 
+                margin-top: 50px
+        &__products 
+            &-blocks 
+                gap: 15px 0px
+                padding: 14px
+            &-item 
+                max-width: 330px
+        &__call 
+            &-block 
+                margin-top: 35px
+                gap: 20px
+            &-image 
+                display: none
+            &-type 
+                padding: 17px
+                width: 90%
+                max-width: 560px
+    .footer
+        position: static
+        &__nav 
+            display: none
+@media (max-width: 768px)
+    .container
+        width: 540px
+    .text 
+        &_fz
+            &12 
+                font-size: 11px
+                line-height: 14px
+            &14
+                font-size: 11px
+                line-height: 14px
+            &16
+                font-size: 12px
+                line-height: 15px
+            &18
+                font-size: 15px
+                line-height: 20px
+            &20
+                font-size: 15px
+                line-height: 18px
+            &28
+                font-size: 17px
+                line-height: 20px
+            &38 
+                font-size: 19px
+                line-height: 100%
+            &44
+                font-size: 23px
+                line-height: 100%
+            &120
+                font-size: 60px
+                line-height: 100%
+    .main
+        &__promo
+            &-title 
+                margin-top: 246px
+        &__ways 
+            padding: 50px 0px
+            &-item 
+                width: 100% !important
+                &-text 
+                    max-width: 254px
+        &__reviews
+            padding: 50px 0px
+        &__gold 
+            padding: 50px 0px
+            &-blocks
+                gap: 20px 10px
+                margin-top: 32px
+        &__products
+            padding: 50px 0px
+            &-logo 
+                width: 400px
+            &-title 
+                margin: 25px 0px
+            &-blocks 
+                padding: 14px
+            &-item 
+                max-width: 100%
+                &-title 
+                    margin-bottom: 16px
+                    .icon 
+                        width: 35px
+                        height: 35px
+                        min-width: unset
+                        min-height: unset
+        &__call 
+            padding: 50px 0px
+            &-block 
+                margin-top: 35px
+                flex-direction: column
+            &-type 
+                &-title 
+                    .icon 
+                        min-width: unset 
+                        min-height: unset 
+                        width: 32px
+                        height: 32px
+@media (max-width: 576px)
+    .container
+        width: 100%
+        padding: 0px 15px
+    .text
+        &_fz
+            &120 
+                font-size: 50px
+    .button 
+        padding: 8px 12px
+    .main 
+        &__promo 
+            &-title 
+                margin-top: 220px
+            &-back 
+                object-position: 0px -10px
+        &__reviews
+            &-slider 
+                &-slide 
+                    grid-template: auto / repeat(1, 1fr)
+        &__gold 
+            &-blocks 
+                flex-direction: column
+            &-item 
+                max-width: 400px 
+        &__products
+            &-item 
+                &-title 
+                    .icon
+                        min-width: 35px

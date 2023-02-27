@@ -1,0 +1,302 @@
+.main
+    &__form 
+        position: relative
+        padding: 76px 0px 101px
+        &-title 
+            margin-bottom: 10px
+        &-steps
+            margin: 70px auto 0px
+            width: 740px
+            display: flex
+            align-items: center
+            justify-content: space-between
+            &-item 
+                position: relative
+                .line
+                    position: absolute
+                    z-index: -1
+                    top: 58%
+                    right: calc(100% - 10px)
+                    width: 190px
+                    height: 10px
+                    background: #FFFFFF
+                    box-shadow: 0px 8px 18px -6px rgba(24, 39, 75, 0.12), 0px 12px 42px -4px rgba(24, 39, 75, 0.12), 0px 4px 8px 6px rgba(0, 0, 0, 0.05)
+                img
+                    &.color
+                        display: none
+                &.active
+                    .line 
+                        background: #30D5C8 
+                    img 
+                        display: none
+                        &.color
+                            display: block
+    &__promo
+        padding: 50px 0px
+        position: relative
+        min-height: 700px
+        display: flex
+        align-items: center
+        justify-content: center
+        &-back 
+            &.mob 
+                display: none
+        &-title 
+            background: linear-gradient(90deg, #669BEF 0%, #1940B0 99.95%)
+            -webkit-background-clip: text
+            -webkit-text-fill-color: transparent
+            background-clip: text
+            text-fill-color: transparent
+        &-text 
+            max-width: 865px
+            text-align: center
+        &-undertitle
+            margin: 44px 0px 21px
+        &-arrow
+            background: #292929
+            width: 56px
+            height: 56px
+            border-radius: 100%
+            display: flex
+            align-items: center
+            justify-content: center
+            margin: 70px auto 0px
+            img 
+                width: 30%
+                transform: rotate(90deg)
+    &__ways
+        position: relative
+        padding: 90px 0px
+        &-title 
+            text-align: center
+        &-item 
+            position: relative
+            overflow: hidden
+            border-radius: 10px
+            min-height: 360px
+            padding: 40px
+            width: 43.2%
+            display: flex
+            flex-direction: column
+            justify-content: space-between
+            gap: 20px
+            &-text 
+                max-width: 380px
+            &-title 
+                margin-bottom: 40px
+            &:first-child, &:nth-child(4n + 1), &:nth-child(4n)
+                width: 54.6%
+            ul, ol 
+                padding-left: 20px
+                li 
+                    margin-bottom: 12px
+        &-blocks
+            margin-top: 60px
+            display: flex
+            justify-content: center
+            flex-wrap: wrap
+            gap: 30px
+    &__reviews
+        padding: 90px 0px 134px
+        &-slider
+            margin-top: 60px
+            position: relative
+            &-button 
+                margin: 0 auto
+            &-points
+                display: flex
+                align-items: center
+                justify-content: center
+                margin: 40px 0px 50px
+                gap: 10px 
+                span 
+                    width: 10px
+                    height: 10px
+                    border: 1px solid #00C5B1
+                    border-radius: 100%
+                    transition: 0.4s all
+                    cursor: pointer
+                    &.active
+                        background: #00C5B1
+            &-slide 
+                display: grid
+                grid-template: auto / repeat(4, 1fr)
+                justify-content: center
+                gap: 20px
+                opacity: 0
+                visibility: hidden
+                transform: translateY(-100px)
+                transition: 0.4s all
+                position: absolute
+                &.active
+                    position: relative
+                    opacity: 1
+                    visibility: visible
+                    transform: translateY(0px)
+            &-item 
+                padding: 20px 20px 27px
+                background: #FFFFFF
+                box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+                border-radius: 10px
+                &-body
+                    padding-top: 20px
+                &-link 
+                    margin-top: 20px
+                    color: #00C5B1
+                    display: block
+                    pointer-events: all
+                    width: fit-content
+                &-date 
+                    color: #6F6F6F
+                    margin-top: 5px
+                &-top 
+                    display: flex
+                    align-items: center
+                    gap: 15px
+                    padding-bottom: 20px
+                    border-bottom: 1px solid #E6E6E6
+                &-image 
+                    position: relative
+                    width: 50px
+                    height: 50px
+                    overflow: hidden
+                    border-radius: 100%
+                    img 
+                        z-index: 0
+    &__gold 
+        position: relative
+        padding: 90px 0px 70px
+        text-align: center
+        &-blocks
+            margin-top: 70px
+            display: flex
+            justify-content: center
+            align-items: center
+            gap: 50px 212px
+        &-item 
+            display: flex
+            flex-direction: column
+            align-items: center
+            max-width: 300px
+            position: relative
+            .line 
+                position: absolute
+                width: 333px
+                top: 37%
+                left: calc(100% - 61px)
+                filter: drop-shadow(0px 16px 13px rgba(50, 92, 192, 0.08))
+                max-width: unset
+                z-index: -1
+            &:last-child, &:nth-child(3n)
+                .line 
+                    display: none
+            &-title
+                margin: 20px 0px 12px
+    &__products
+        padding: 90px 0px 120px
+        &-logo 
+            width: 748px
+            margin: 0 auto
+            display: block
+        &-title 
+            margin: 67px 0px 60px
+            text-align: center
+        &-blocks 
+            background: #FFFFFF
+            box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+            border-radius: 10px
+            padding: 30px 30px 43px
+            display: flex
+            flex-wrap: wrap
+            gap: 35px 0px
+            justify-content: space-between
+        &-item
+            max-width: 555px
+            &-point 
+                display: flex
+                align-items: center
+                gap: 24px
+                padding-left: 9px
+                margin-bottom: 27px
+                &:last-child
+                    margin-bottom: 0 !important
+            &-number
+                display: flex
+                align-items: center
+                justify-content: center
+                min-width: 33px
+                min-height: 33px
+                background: #5675D3
+                border: 1px solid #E8E8E8
+                border-radius: 100%
+                position: relative
+                &::before, &::after
+                    position: absolute
+                    content: ''
+                    border-radius: 100%
+                    width: 100%
+                    height: 100%
+                &::before
+                    opacity: 0.2
+                    border: 4px solid #5675d3
+                &::after
+                    opacity: 0.1
+                    border: 9px solid #5675d3
+            &-title 
+                display: flex
+                align-items: center
+                gap: 20px
+                margin-bottom: 32px
+                .icon
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    min-width: 46px
+                    min-height: 46px
+                    background: linear-gradient(99.76deg, #72ABFA -7.95%, #0E33A6 106.51%), #FFFFFF
+                    box-shadow: 0px 16px 13px rgba(0, 0, 0, 0.03)
+                    border-radius: 12px
+                    img 
+                        width: 61%
+    &__call
+        position: relative
+        padding: 90px 0px
+        &-block 
+            display: flex
+            align-items: center
+            justify-content: space-between
+            gap: 20px
+            margin-top: 56px
+        &-type 
+            padding: 25px 25px 30px
+            max-width: 480px
+            width: 430px
+            background: #FFFFFF
+            box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+            border-radius: 12px
+            &-text 
+                display: flex
+                flex-direction: column
+                gap: 15px
+            &-item 
+                display: flex
+                align-items: center
+                gap: 10px
+                img 
+                    width: 20px
+                &.mail 
+                    img 
+                        filter: invert(1)
+            &-title 
+                display: flex
+                align-items: center
+                gap: 15px
+                margin-bottom: 20px
+                .icon
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    min-width: 40px 
+                    min-height: 40px
+                    background: #00C5B1
+                    border-radius: 8px
