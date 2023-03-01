@@ -200,6 +200,55 @@
                         background-color: rgba(0, 0, 0, 0.3)
                         left: calc(100% + 10px)
     .main 
+        &__form
+            .change-form-cont
+                padding: 60px 0px
+            .main-loading 
+                img 
+                    width: 80px
+            &-steps 
+                margin: 40px auto 0px
+                width: 550px
+                &-item 
+                    .line 
+                        width: 150px
+                        height: 7px
+                    img 
+                        max-width: 100px
+            &-change 
+                width: 550px
+                gap: 5px 
+                margin: 40px auto 0px
+                &-col 
+                    width: 49.5%
+                    gap: 8px
+                &-row 
+                    gap: 10px
+                    .cards
+                        &-field 
+                            img 
+                                max-width: 19px 
+                                left: 10px
+                            input 
+                                padding-left: 40px
+                &-col, &-row 
+                    padding: 14px
+            .list 
+                padding: 5px
+                gap: 7px
+                &_info 
+                    img 
+                        max-width: 19px 
+                        margin-right: 7px
+                &_items
+                    &-val 
+                        &.long 
+                            padding: 10px
+                        img 
+                            max-width: 19px
+                            margin-right: 7px
+            .field
+                padding: 10px
         &__promo 
             background-color: #F2FAFF
             &-title 
@@ -303,6 +352,16 @@
             &120
                 font-size: 60px
                 line-height: 100%
+    .modal
+        &__item 
+            width: 400px
+            padding: 17px
+        &__check
+            margin: 14px 0px
+            label 
+                .checkbox
+                    width: 15px
+                    height: 15px
     .main
         &__promo
             &-title 
@@ -359,7 +418,39 @@
                 font-size: 50px
     .button 
         padding: 8px 12px
+    .modal
+        &__item 
+            width: 90%
+        &__check
+            label 
+                flex-wrap: wrap
+        &__buttons
+            &.mt
+                margin-top: 12px
     .main 
+        &__form 
+            .change-form-cont
+                padding: 40px 0px
+            &-change 
+                width: 100%
+                max-width: 400px 
+                padding: 0px 15px
+                &-col 
+                    width: 100%
+                &-row 
+                    .title, .courses, .cards
+                        flex-direction: column
+                        align-items: flex-start
+                        gap: 5px
+            &-steps 
+                width: 100%
+                max-width: 400px
+                padding: 0px 15px
+                &-item 
+                    .line 
+                        display: none
+                    img 
+                        max-width: 88px
         &__promo 
             &-title 
                 margin-top: 220px

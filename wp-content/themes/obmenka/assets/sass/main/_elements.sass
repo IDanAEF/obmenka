@@ -13,6 +13,9 @@ a
     text-decoration: none
 span 
     font-weight: inherit
+html, body 
+    &.fixed
+        overflow: hidden
 body 
     min-height: 100vh
 header, footer, main 
@@ -107,6 +110,13 @@ img
         background: #03AD9C
     &_shadow
         box-shadow: 0px 12px 42px -4px rgba(0, 197, 177, 0.47)
+    &_red
+        background: #FFFFFF
+        border: 1px solid #D91C1C
+        color: #D91C1C
+        &:hover 
+            background: #D91C1C
+            color: #fff
     &_arrow
         background: none
         padding: 0 !important

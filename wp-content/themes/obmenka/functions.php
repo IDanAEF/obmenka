@@ -39,16 +39,119 @@
         });
     });
 
+    // function update_pay(){
+    //     $post_data = [
+    //         'ID' => $_GET['post_id'],
+    //         'meta_input' => [
+    //             'pay' => true,
+    //         ],
+    //     ];
+        
+    //     $post_id = wp_insert_post($post_data);
+
+    //     die();
+    // }
+    
+    
+    // add_action('wp_ajax_update_pay', 'update_pay');
+    // add_action('wp_ajax_nopriv_update_pay', 'update_pay');
+
+    function delete_order(){
+        $deleted = wp_delete_post($_GET['post_id']);
+
+        die();
+    }
+    
+    add_action('wp_ajax_delete_order', 'delete_order');
+    add_action('wp_ajax_nopriv_delete_order', 'delete_order');
+
+    function check_status(){
+        $res = get_field('finish', $_GET['post_id']);
+
+        if (!$res && get_field('deny', $_GET['post_id'])) {
+            $res = [
+                'deny' => get_field('reason', $_GET['post_id'])
+            ];
+        }
+        
+        echo json_encode($res);
+
+        die();
+    }
+    
+    add_action('wp_ajax_check_status', 'check_status');
+    add_action('wp_ajax_nopriv_check_status', 'check_status');
+
+    function create_order(){
+        function randomString($length = 12) {
+            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $charactersLength = strlen($characters);
+            $randomString = '';
+            for ($i = 0; $i < $length; $i++) {
+                $randomString .= $characters[rand(0, $charactersLength - 1)];
+            }
+            return $randomString;
+        }
+
+        $id = randomString();
+
+        $post_data = [
+            'post_title'    => $id.' - '.$_GET['contacts'],
+            'post_name'     => $id,
+            'post_status'   => 'publish',
+            'post_type'     => 'post',
+            'post_author'   => 1,
+            'ping_status'   => 'open',
+            'post_category' => [3],
+            'meta_input'    => [
+                'id-code' => $id,
+                'contacts' => $_GET['contacts'],
+                'sender_card' => $_GET['send-card'], 
+                'sender_bank' => $_GET['send-bank'],
+                'sender_sum' => $_GET['send-sum'],
+                'sender_carrency' => $_GET['send-curr'],
+                'getter_card' => $_GET['get-card'], 
+                'getter_bank' => $_GET['get-bank'],
+                'getter_sum' => $_GET['get-sum'],
+                'getter_carrency' => $_GET['get-curr'],
+            ],
+        ];
+        
+        $post_id = wp_insert_post($post_data);
+
+        echo $post_id;
+
+        die();
+    }
+    
+    
+    add_action('wp_ajax_create_order', 'create_order');
+    add_action('wp_ajax_nopriv_create_order', 'create_order');
+
     function form_steps(){
         $step = (isset($_COOKIE['step']) ? $_COOKIE['step'] : 1);
-        $send = get_field('code-default_send', 27);
-        $get = get_field('code-default_get', 27);
+        $send = (isset($_COOKIE['send-curr']) ? $_COOKIE['send-curr'] : get_field('code-default_send', 27));
+        $get = (isset($_COOKIE['get-curr']) ? $_COOKIE['get-curr'] : get_field('code-default_get', 27));
+        $getBank = [];
+        $sendBank = [];
         $allCurr = [];
         $allBanks = [];
         $allReserve = [];
         while(have_rows('banks', 27)) {
             the_row();
             foreach(get_sub_field('currences', true) as $curr) {
+                if (isset($_COOKIE['get-bank']) && $_COOKIE['get-bank'] == get_sub_field('name')) {
+                    $getBank = [
+                        'name' => get_sub_field('name'),
+                        'icon' => get_sub_field('icon')
+                    ];
+                }
+                if (isset($_COOKIE['send-bank']) && $_COOKIE['send-bank'] == get_sub_field('name')) {
+                    $sendBank = [
+                        'name' => get_sub_field('name'),
+                        'icon' => get_sub_field('icon')
+                    ];
+                }
                 $allBanks[$curr['code']][] = [
                     'name' => get_sub_field('name'),
                     'icon' => get_sub_field('icon')
@@ -62,6 +165,20 @@
         while(have_rows('currences', 27)) {
             the_row();
             $allCurr[get_sub_field('code')] = get_sub_field('rubs');
+        }
+        if ($send == $get) {
+            foreach ($allCurr as $code => $rubs) {
+                if ($code != $send) {
+                    $send = $code;
+                    break;
+                }
+            }
+        }
+        if (!isset($_COOKIE['get-bank'])) {
+            $getBank = $allBanks[$get][0];
+        }
+        if (!isset($_COOKIE['send-bank'])) {
+            $sendBank = $allBanks[$send][0];
         }
         ?>
         <h2 class="main__form-title text_fz44 text_fw600 text_center">Oбмен валют</h2>
@@ -107,7 +224,7 @@
             <div class="main__form-change-col shadow-block">
                 <div class="title text_fz16">
                     <div class="text text_fw700">Отправляете</div>
-                    <div class="list text_fw500 text_upper list_target">
+                    <div class="list text_fw500 text_upper list_target target-currs">
                         <input class="list_input" type="text" name="send-curr" value="<?=$send?>" required hidden>
                         <span class="list_text"><?=$send?></span>
                         <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
@@ -124,11 +241,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="field list list_target text_fz16">
-                    <input class="list_input" type="text" name="send-bank" value="<?=$allBanks[$send][0]['name']?>" required hidden>
+                <div class="field list list_target text_fz16 target-banks">
+                    <input class="list_input" type="text" name="send-bank" value="<?=$sendBank['name']?>" required hidden>
                     <div class="list_info">
-                        <img class="list_img" src="<?=$allBanks[$send][0]['icon']?>" alt="">
-                        <span class="list_text text_fw500"><?=$allBanks[$send][0]['name']?></span>
+                        <img class="list_img" src="<?=$sendBank['icon']?>" alt="">
+                        <span class="list_text text_fw500"><?=$sendBank['name']?></span>
                     </div>
                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                     <div class="list_items">
@@ -151,7 +268,7 @@
             <div class="main__form-change-col shadow-block">
                 <div class="title text_fz16">
                     <div class="text text_fw700">Получаете</div>
-                    <div class="list text_fw500 text_upper list_target">
+                    <div class="list text_fw500 text_upper list_target target-currs">
                         <input class="list_input" type="text" name="get-curr" value="<?=$get?>" required hidden>
                         <span class="list_text"><?=$get?></span>
                         <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
@@ -168,11 +285,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="field list list_target text_fz16">
-                    <input class="list_input" type="text" name="send-bank" value="<?=$allBanks[$get][0]['name']?>" required hidden>
+                <div class="field list list_target text_fz16 target-banks">
+                    <input class="list_input" type="text" name="get-bank" value="<?=$getBank['name']?>" required hidden>
                     <div class="list_info">
-                        <img class="list_img" src="<?=$allBanks[$get][0]['icon']?>" alt="">
-                        <span class="list_text text_fw500"><?=$allBanks[$get][0]['name']?></span>
+                        <img class="list_img" src="<?=$getBank['icon']?>" alt="">
+                        <span class="list_text text_fw500"><?=$getBank['name']?></span>
                     </div>
                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                     <div class="list_items">
@@ -196,13 +313,13 @@
                 <div class="title text_fz16">
                     <div class="text text_fw700">Детали обмена</div>
                     <div class="change-banks text_fw500">
-                        <?=$allBanks[$send][0]['name']?> на <?=$allBanks[$get][0]['name']?>
+                        <?=$sendBank['name']?> на <?=$getBank['name']?>
                     </div>
                 </div>
                 <div class="courses text_fz16">
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/course.svg" alt="">
-                        Курс: <b class="text_upper">1 <?=$send?> = <?=$allCurr[$send]/$allCurr[$get]?> <?=$get?></b>
+                        Курс: <b class="text_upper">1 <?=$send?> = <?=round($allCurr[$send]/$allCurr[$get], 2)?> <?=$get?></b>
                     </div>
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/reserve.svg" alt="">
@@ -234,21 +351,134 @@
                     <div class="cards-item">
                         <div class="cards-title text_fz14 text_fw600">Реквизиты отправителя:</div>
                         <div class="cards-field text_fz16">
-                            <img src="<?=$allBanks[$send][0]['icon']?>" alt="" class="send-card-img">
-                            <input type="text" name="send-card" data-mask="____ ____ ____ ____" class="card-validate field" placeholder="Карта <?=$allBanks[$send][0]['name']?>" required>
+                            <img src="<?=$sendBank['icon']?>" alt="" class="send-card-img">
+                            <input type="text" name="send-card" data-mask="____ ____ ____ ____" class="card-validate field" placeholder="Карта <?=$sendBank['name']?>" required>
                         </div>
+                        <div class="cards-invalid text_fz14"></div>
                     </div>
                     <div class="cards-item">
                         <div class="cards-title text_fz14 text_fw600">Реквизиты получателя:</div>
                         <div class="cards-field text_fz16">
-                            <img src="<?=$allBanks[$get][0]['icon']?>" alt="" class="get-card-img">
-                            <input type="text" name="get-card" data-mask="____ ____ ____ ____" class="card-validate field" placeholder="Карта <?=$allBanks[$get][0]['name']?>" required>
+                            <img src="<?=$getBank['icon']?>" alt="" class="get-card-img">
+                            <input type="text" name="get-card" data-mask="____ ____ ____ ____" class="card-validate field" placeholder="Карта <?=$getBank['name']?>" required>
+                        </div>
+                        <div class="cards-invalid text_fz14"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="main__form-change-button change button button_shadow text_white text_fz18 text_fw700 text_center">
+                Обменять
+            </div>
+            <?php elseif ($step == 2 && !isset($_COOKIE['status'])) : ?>
+            <?php
+                $post_id = $_COOKIE['order-post-id'];    
+            ?>
+            <div class="main__form-change-order">
+                <div class="main__form-change-head">
+                    <h2 class="text_fz18 text_fw700">Ваша заявка создана</h2>
+                    <span class="text_fz16 text_fw600"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
+                </div>
+                <div class="main__form-change-row">
+                    <div class="title text_fz16 text_fw600">Вы обмениваете <?php the_field('sender_bank', $post_id) ?> на <?php the_field('getter_bank', $post_id) ?>:</div>
+                    <div class="field text_fz16 text_fw500 text_upper">
+                        <div class="list_info">
+                            <span class="list_text text_fw500"><?php the_field('sender_sum', $post_id) ?> <?php the_field('sender_carrency', $post_id) ?></span>
+                        </div>
+                    </div>
+                    <div class="field text_fz16 text_fw500 text_upper">
+                        <div class="list_info">
+                            <span class="list_text text_fw500"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></span>
+                        </div>
+                    </div>
+                    <div class="main__form-change-ways text_fz14">
+                        <div class="main__form-change-way">
+                            <div class="number text_white text_fz12">1</div>Перейдите в приложение <?php the_field('sender_bank', $post_id) ?>
+                        </div>
+                        <div class="main__form-change-way">
+                            <div class="number text_white text_fz12">2</div>Выполните перевод
+                        </div>
+                    </div>
+                    <div class="cards-item">
+                        <div class="cards-title text_fz14 text_fw500">Реквизиты:</div>
+                        <div class="field text_fz16 text_fw500 text_upper">
+                            <div class="list_info">
+                                <span class="list_text text_fw500"><?=preg_replace('/\d{4}/', "$0 ",get_field('requisites_default', 27)) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cards-item">
+                        <div class="cards-title text_fz14 text_fw500">Сумма:</div>
+                        <div class="field text_fz16 text_fw500 text_upper">
+                            <div class="list_info">
+                                <span class="list_text text_fw500"><?php the_field('sender_sum', $post_id) ?> <?php the_field('sender_carrency', $post_id) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-row text_fz14 text_fz500">
+                        <span>Курс:</span>
+                        <span class="text_upper">1 <?php the_field('sender_carrency', $post_id) ?> = <?=round($allCurr[get_field('sender_carrency', $post_id)]/$allCurr[get_field('getter_carrency', $post_id)], 2)?> <?php the_field('getter_carrency', $post_id) ?></span>
+                    </div>
+                    <div class="info-row text_fz14 text_fz500">
+                        <span class="window">Окно оплаты</span>
+                        <span class="time text_fw500">18:00</span>
+                    </div>
+                    <div class="modal__buttons">
+                        <div class="button delete-order button_red text_fz16 text_fw500 text_center">
+                            Отмена
+                        </div>
+                        <div class="button pay-done text_white text_fz16 text_fw500 text_center">
+                            Я оплатил
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="main__form-change-button button button_shadow text_white text_fz18 text_fw700 text_center">
-                Обменять
+            <?php elseif ($step == 2 && isset($_COOKIE['status']) && $_COOKIE['status'] == 'get-money') : ?>
+            <?php
+                $post_id = $_COOKIE['order-post-id'];    
+            ?>
+            <div class="main__form-change-order check-status-interval">
+                <div class="main__form-change-head">
+                    <h2 class="text_fz18 text_fw700">Ваша заявка в обработке</h2>
+                    <span class="text_fz16 text_fw600"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
+                </div>
+                <div class="main__form-change-row">
+                    <div class="main__form-change-order-loader text_fz14">
+                        <img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt="">
+                        <span>Обрабатываем заявку...</span>
+                    </div>
+                    <div class="order-info text_fz16 text_center">
+                        Ожидайте перевода <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> на <b><?php the_field('getter_bank', $post_id) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
+                    </div>
+                </div>
+            </div>
+            <?php elseif ($step == 3) : ?>
+            <?php
+                $post_id = $_COOKIE['order-post-id'];    
+            ?>
+            <div class="main__form-change-order result">
+                <div class="main__form-change-head">
+                    <h2 class="text_fz18 text_fw700"><?=get_field('deny', $post_id) ? 'Ваша заявка отклонена' : 'Ваша заявка выполнена'?></h2>
+                    <span class="text_fz16 text_fw600"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
+                </div>
+                <div class="main__form-change-row">
+                    <div class="main__form-change-order-icon text_fz20 text_fw600">
+                        <div class="main__products-item-number icon text_white">
+                            <?php if (get_field('deny', $post_id)) : ?>
+                            <div class="deny"><span></span><span></span></div>
+                            <?php else : ?>
+                            <img src="/wp-content/themes/obmenka/assets/images/double_check.svg" alt="">
+                            <?php endif; ?>
+                        </div>
+                        <span><?=get_field('deny', $post_id) ? 'Заявка отклонена!' : 'Заявка выполнена!'?></span>
+                    </div>
+                    <div class="order-info text_fz16 text_center">
+                        <?php if (get_field('deny', $post_id)) : ?>
+                        <?=get_field('reason', $post_id)?>
+                        <?php else : ?>
+                        Перевод <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> должен поступить на <b><?php the_field('getter_bank', $post_id) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
             <?php endif; ?>
         </div>

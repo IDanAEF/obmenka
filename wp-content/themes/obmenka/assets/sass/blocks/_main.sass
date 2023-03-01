@@ -6,6 +6,9 @@
             min-height: 500px
         &-title 
             margin-bottom: 10px
+        input 
+            &.invalid
+                border: 1px solid #D91C1C
         .main-loading 
             position: absolute
             width: 100%
@@ -80,6 +83,8 @@
             border: 1px solid #E6E6E6
             border-radius: 10px
             padding: 16px
+            &.invalid
+                border: 1px solid #D91C1C
         &-change 
             width: 740px
             display: flex
@@ -90,6 +95,92 @@
                 background: #FFFFFF
                 box-shadow: 0px 8px 18px -6px rgba(24, 39, 75, 0.12), 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
                 border-radius: 16px
+            &-order
+                width: 100%
+                background: #FFFFFF
+                box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+                border-radius: 16px
+                .title
+                    color: rgba(41, 41, 41, 0.8)
+                .field
+                    background: #F9F9F9
+                    border: 1px solid #E6E6E6
+                .window
+                    color: #5675D3
+                    cursor: pointer
+                    border-bottom: 1px dashed #5675D3
+                &-loader, &-icon 
+                    display: flex
+                    flex-direction: column
+                    align-items: center
+                    gap: 22px
+                    span 
+                        color: rgba(41, 41, 41, 0.6)
+                    img 
+                        width: 48px
+                &-icon 
+                    img 
+                        width: 25px
+                    .icon 
+                        min-width: 57px
+                        min-height: 57px
+                        margin-top: 20px
+                        .deny 
+                            display: flex
+                            align-items: center
+                            justify-content: center
+                            position: relative
+                            width: 25px
+                            height: 25px
+                            span 
+                                position: absolute
+                                background-color: #fff 
+                                border-radius: 4px
+                                width: 100%
+                                height: 3px
+                                &:first-child
+                                    transform: rotate(45deg)
+                                &:last-child
+                                    transform: rotate(-45deg)
+                        &::before
+                            border: 7px solid #5675d3
+                        &::after
+                            border: 16px solid #5675d3
+                    span 
+                        color: inherit
+                .order-info 
+                    margin: 15px 0px 20px
+                &.result
+                    .order-info 
+                        margin-top: 0
+            .info-row
+                display: flex
+                align-items: center
+                justify-content: space-between
+                flex-wrap: wrap 
+                gap: 5px
+            &-ways 
+                display: flex
+                align-items: center
+                gap: 30px 
+                flex-wrap: wrap
+            &-way 
+                display: flex
+                align-items: center
+                gap: 11px
+                .number
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    width: 20px
+                    height: 20px
+                    border-radius: 100%
+                    background: #5675D3
+            &-head
+                padding: 25px
+                background: #F0F9FF
+                width: 100%
+                border-radius: 16px 16px 0px 0px
             &-col 
                 width: 48%
                 display: flex
@@ -120,13 +211,14 @@
                         gap: 5px
                 .cards
                     display: flex
-                    align-items: center
                     gap: 20px
                     &-item 
                         display: flex
                         flex-direction: column
                         gap: 10px
                         width: 100%
+                    &-invalid
+                        color: #D91C1C
                     &-title 
                         color: rgba(41, 41, 41, 0.7)
                     &-field 
@@ -162,6 +254,7 @@
                     background: #FFFFFF
                     box-shadow: 0px 8px 18px -6px rgba(24, 39, 75, 0.12), 0px 12px 42px -4px rgba(24, 39, 75, 0.12), 0px 4px 8px 6px rgba(0, 0, 0, 0.05)
                 img
+                    max-width: 138px
                     &.color
                         display: none
                 &.active

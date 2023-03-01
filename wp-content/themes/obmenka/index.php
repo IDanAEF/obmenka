@@ -190,6 +190,48 @@
         </div>
     </section>
 </main>
+<div class="modal">
+    <div class="modal__item" id="how-work">
+        <div class="modal__title text_fz16 text_fw600">Как работает OBMENKA</div>
+        <div class="modal__descr text_fz16">Мы используем принцип P2P. Это полностью безопасно! Вам не нужно указывать CVV-код и другие персональные данные вашей карты. </div>
+        <div class="modal__check text_fz14">
+            <input type="checkbox" id="privacy" required hidden checked>
+            <label for="privacy" class="active">
+                <div class="checkbox">
+                    <img src="<?=bloginfo('template_url')?>/assets/images/check.svg" alt="">
+                </div>
+                Я согласен <a href="">с условиями и правилами сервиса</a>
+            </label>
+        </div>
+        <div class="modal__buttons">
+            <div class="button back button_red text_fz16 text_fw500 text_center">
+                Отмена
+            </div>
+            <div class="button continue text_white text_fz16 text_fw500 text_center">
+                Продолжить
+            </div>
+        </div>
+    </div>
+    <div class="modal__item" id="pay-done">
+        <div class="modal__title text_fz16 text_fw600">Подтверждение оплаты</div>
+        <div class="modal__descr text_fz16">
+        После подтверждения оплаты, мы проверим перевод
+        в течении 15 минут и переведем сумму в другой валюте
+        на указанные реквизиты.
+        <br>
+        Пожалуйста, нажмите <b>«Я оплатил»</b> только если вы
+        действительно сделали перевод.
+        </div>
+        <div class="modal__buttons mt">
+            <div class="button back button_red text_fz16 text_fw500 text_center">
+                Отмена
+            </div>
+            <div class="button continue-pay text_white text_fz16 text_fw500 text_center">
+                Продолжить
+            </div>
+        </div>
+    </div>
+</div>
 <?php
     get_footer();
 ?>
