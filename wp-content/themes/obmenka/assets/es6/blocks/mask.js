@@ -1,4 +1,4 @@
-const mask = (selector, card = false) => {
+const mask = () => {
 
     let setCursorPosition = (pos, elem) => {
         elem.focus();
@@ -16,35 +16,37 @@ const mask = (selector, card = false) => {
     };
 
     function createMask(event) {
-        let matrix = card ? '____ ____ ____ ____' : '+7 (___) ___ __ __',
+        const inp = event.target;
+
+        let matrix = inp.getAttribute('data-mask'),
             i = 0,
             def = matrix.replace(/\D/g, ''),
-            val = this.value.replace(/\D/g, '');
+            val = inp.value.replace(/\D/g, '');
 
         if (def.length >= val.length) {
             val = def;
         }
 
-        this.value = matrix.replace(/./g, function(a) {
+        inp.value = matrix.replace(/./g, function(a) {
             return /[_\d]/.test(a) && i < val.length ? val.charAt(i++) : i >= val.length ? '' : a;
         });
 
         if (event.type === 'blur') {
-            if (this.value.length == 2) {
-                this.value = '';
-            }
+            if (inp.value.length == 2) inp.value = '';
         } else {
-            setCursorPosition(this.value.length, this);
+            setCursorPosition(inp.value.length, inp);
         }
     }
 
-    let inputs = document.querySelectorAll(selector);
+    function initMask(e) {
+        if (e.target.getAttribute('data-mask') && (e.target.getAttribute('type') == 'tel' || (e.target.getAttribute('type') == 'text' && e.target.classList.contains('card-validate')))) {
+            createMask(e);
+        }
+    }
 
-    inputs.forEach(input => {
-        input.addEventListener('input', createMask);
-        input.addEventListener('focus', createMask);
-        input.addEventListener('blur', createMask);
-    });
+    window.addEventListener('input', initMask);
+    window.addEventListener('focus', initMask);
+    window.addEventListener('blur', initMask);
 };
 
 export default mask;

@@ -14,37 +14,12 @@
             </a>
         </div>
     </section>
-    <div id="change-form" class="main__form">
+    <section id="change-form" class="main__form">
         <img src="<?=bloginfo('template_url')?>/assets/images/back_light.png" alt="" class="main__form-back img_bg">
-        <div class="container">
-            <h2 class="main__form-title text_fz44 text_fw600 text_center">Oбмен валют</h2>
-            <div class="main__form-step text_fz20 text_fw500 text_center">
-                <span class="main__form-step-number">
-                    01
-                </span>
-                . 
-                <span class="main__form-step-number">
-                    Заполнение данных
-                </span>
-            </div>
-            <div class="main__form-steps">
-                <div class="main__form-steps-item active">
-                    <img src="<?=bloginfo('template_url')?>/assets/images/step1.png" alt="">
-                    <img src="<?=bloginfo('template_url')?>/assets/images/step1-color.png" class="color" alt="">
-                </div>
-                <div class="main__form-steps-item">
-                    <div class="line"></div>
-                    <img src="<?=bloginfo('template_url')?>/assets/images/step2.png" alt="">
-                    <img src="<?=bloginfo('template_url')?>/assets/images/step2-color.png" class="color" alt="">
-                </div>
-                <div class="main__form-steps-item">
-                    <div class="line"></div>
-                    <img src="<?=bloginfo('template_url')?>/assets/images/step3.png" alt="">
-                    <img src="<?=bloginfo('template_url')?>/assets/images/step3-color.png" class="color" alt="">
-                </div>
-            </div>
+        <div class="container change-form-cont" data-url="<?=admin_url( "admin-ajax.php" )?>">
+            
         </div>
-    </div>
+    </section>
     <section class="main__ways">
         <img src="<?=bloginfo('template_url')?>/assets/images/blue_back.png" alt="" class="main__ways-back img_bg">
         <div class="container">
