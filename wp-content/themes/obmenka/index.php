@@ -6,7 +6,7 @@
         <img src="<?php the_field('promo_back') ?>" alt="" class="main__promo-back img_bg">
         <img src="<?php the_field('promo_back-mob') ?>" alt="" class="main__promo-back mob img_bg">
         <div class="main__promo-text">
-            <h1 class="main__promo-title text_fz120 text_upper text_ls005 text_fw700"><?php the_field('promo_title') ?></h1>
+            <h1 class="main__promo-title text_colorfull text_fz120 text_upper text_ls005 text_fw700"><?php the_field('promo_title') ?></h1>
             <h2 class="main__promo-undertitle text_fz44 text_fw600"><?php the_field('promo_undertitle') ?></h2>
             <div class="main__promo-descr text_fz18"><?php the_field('promo_descr') ?></div>
             <a href="#change-form" class="main__promo-arrow">
@@ -228,6 +228,38 @@
             </div>
             <div class="button continue-pay text_white text_fz16 text_fw500 text_center">
                 Продолжить
+            </div>
+        </div>
+    </div>
+    <div class="modal__item instr" id="instruction">
+        <div class="modal__title text_fz16 text_fw600">Инструкция для оплаты</div>
+        <div class="modal__descr text_fz16">
+        Вам нужно выполнить перевод вручную, с помощью приложения вашего способа обмена.
+        <br>
+        <div class="main__form-change-way text_fz16">
+            <div class="number text_white text_fz12">1</div>
+            Перейдите в приложение
+        </div>
+        <div class="main__form-change-way text_fz16">
+            <div class="number text_white text_fz12">2</div>
+            Выполните перевод на указанную карту
+        </div>
+        <div class="main__form-change-way text_fz16">
+            <div class="number text_white text_fz12">3</div>
+            Нажмите на кнопку <b>«Я оплатил»</b>
+        </div>
+        <div class="main__form-change-way text_fz16">
+            <div class="number text_white text_fz12">4</div>
+            Мы проверим перевод в течении 15 минут<br>
+            и переведем сумму в другой валюте на
+            указанные реквизиты
+        </div>
+        <br>
+        Если вы не сделаете перевод в период окна оплаты, заявка будет отменена автоматически
+        </div>
+        <div class="modal__buttons mt">
+            <div class="back text_fz16 text_fw600 text_center">
+                Понятно
             </div>
         </div>
     </div>

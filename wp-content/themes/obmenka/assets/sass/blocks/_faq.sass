@@ -1,0 +1,108 @@
+.faq
+    &__promo
+        padding: 96px 0px
+        overflow: hidden
+        position: relative
+        &-image 
+            position: absolute
+            top: 50%
+            left: 50%
+            transform: translate(-50%, -50%)
+            &.mob
+                display: none
+        &-title 
+            margin: 40px 0px
+        &-undertitle
+            color: #838282
+        &-text 
+            position: relative
+            max-width: 800px
+            margin: 0 auto
+    &__contacts
+        &-descr 
+            margin: 24px 0px 32px
+            color: #B0B0B0
+        &-block 
+            background: #FFFFFF
+            box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+            border-radius: 10px
+            padding: 20px
+            margin-bottom: 32px
+            &-link 
+                display: flex
+                align-items: center
+                gap: 10px 
+                img 
+                    filter: invert(1)
+                    width: 18px
+            &-title
+                .img
+                    background: #5675D3
+                    border-radius: 10px
+                    min-width: 66px
+                    min-height: 66px 
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    &.green 
+                        background: #30D5C8
+                    img 
+                        width: 68%
+                display: flex
+                align-items: center
+                gap: 15px
+        &-links 
+            display: flex
+            flex-direction: column
+            gap: 26px 
+            margin-top: 12px
+    &__points
+        padding: 96px 0px
+        &-item 
+            &-title 
+                padding: 16px
+                display: flex
+                align-items: center
+                justify-content: space-between
+                gap: 10px
+                cursor: pointer
+                border-bottom: 2px solid rgba(16, 24, 40, 0.1)
+                border-radius: 10px 10px 0px 0px
+                transition: 0.3s all
+                img 
+                    transition: 0.3s all
+                    pointer-events: none
+                &.active
+                    background: #F2FAFF
+                    img 
+                        transform: rotate(180deg)
+            &-descr 
+                transition: 0.3s all
+                overflow: hidden
+                height: 0
+                &.active
+                    padding: 16px
+                    height: unset
+                ul, ol
+                    padding-left: 20px
+                    margin: 15px 0px
+                    li 
+                        margin-bottom: 15px
+    &__translation
+        padding: 96px 0px
+        background: #F2FAFF
+        .container
+            display: grid
+            grid-template: auto / repeat(4, 1fr)
+            gap: 32px
+        &-item 
+            display: flex
+            flex-direction: column
+            justify-content: space-between
+            gap: 24px
+            background: #5675D3
+            box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+            border-radius: 10px
+            padding: 40px
+            &-button 
+                width: 100%

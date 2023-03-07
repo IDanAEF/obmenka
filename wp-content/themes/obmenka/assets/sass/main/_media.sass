@@ -43,6 +43,21 @@
         &__products
             &-item 
                 max-width: 500px
+    .slide-field
+        gap: 30px
+        .slide-content
+            width: 778px
+        .slide-sidebar
+            width: 330px
+    .faq
+        &__promo, &__points, &__translation
+            padding: 80px 0px
+        &__translation
+            .container 
+                gap: 16px
+            &-item 
+                gap: 16px 
+                padding: 20px
     .footer
         &__top 
             padding: 12px 0px
@@ -83,6 +98,11 @@
             &120
                 font-size: 88px
                 line-height: 100%
+    .slide-field
+        .slide-content
+            width: 643px
+        .slide-sidebar 
+            width: 285px
     .header
         padding: 13px 0px
         .container 
@@ -92,6 +112,31 @@
         &__nav 
             ul 
                 gap: 14px
+    .faq
+        &__points, &__promo, &__translation 
+            padding: 70px 0px
+        &__promo 
+            &-title 
+                margin: 20px 0px
+            &-text
+                max-width: 464px
+        &__points 
+            &-item 
+                &-title, &-descr.active
+                    padding: 12px
+        &__contacts
+            &-descr 
+                margin: 20px 0px
+            &-block 
+                padding: 13px
+                margin-bottom: 17px
+                &-title 
+                    gap: 10px
+                    .img 
+                        min-width: 55px
+                        min-height: 55px
+            &-links 
+                gap: 16px
     .main
         &__promo 
             min-height: 520px
@@ -199,6 +244,24 @@
                         width: 21px 
                         background-color: rgba(0, 0, 0, 0.3)
                         left: calc(100% + 10px)
+    .slide-field
+        flex-direction: column
+        .slide-content, .slide-sidebar
+            width: 100%
+    .faq
+        &__promo 
+            padding: 95px 0px 60px
+        &__points, &__translation 
+            padding: 50px 0px
+        &__translation
+            .container
+                gap: 10px
+                grid-template: auto / repeat(2, 1fr)
+            &-item 
+                gap: 8px
+        &__contacts 
+            &-title, &-descr 
+                text-align: center
     .main 
         &__form
             .change-form-cont
@@ -362,6 +425,21 @@
                 .checkbox
                     width: 15px
                     height: 15px
+    .faq
+        &__promo 
+            padding: 90px 0px 50px
+            &-text 
+                max-width: 395px
+        &__points 
+            padding: 40px 0px
+        &__contacts 
+            &-descr 
+                margin: 12px 0px
+            &-block 
+                &-title 
+                    .img 
+                        min-width: 45px 
+                        min-height: 45px
     .main
         &__promo
             &-title 
@@ -427,6 +505,19 @@
         &__buttons
             &.mt
                 margin-top: 12px
+    .faq
+        &__promo 
+            padding: 132px 0px 70px
+            &-image 
+                top: 32%
+            &-title 
+                margin: 14px 0px
+            &-text 
+                max-width: 100%
+                padding: 0px 15px
+        &__translation
+            .container
+                grid-template: auto / repeat(1,1fr)
     .main 
         &__form 
             .change-form-cont

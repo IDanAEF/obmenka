@@ -6,6 +6,8 @@
             min-height: 500px
         &-title 
             margin-bottom: 10px
+        .sum-invalid
+            color: #D91C1C
         input 
             &.invalid
                 border: 1px solid #D91C1C
@@ -14,14 +16,11 @@
             width: 100%
             height: 100%
             top: 0
-            display: flex
-            align-items: center
-            justify-content: center
             backdrop-filter: blur(2px)
             transform: translate3d(0px, 0px, 0px)
             img 
                 width: 120px
-                display: block
+                height: 120px
         .list 
             display: flex
             align-items: center
@@ -45,6 +44,7 @@
                 align-items: center
                 img 
                     max-width: 24px 
+                    max-height: 24px
                     height: auto
                     margin-right: 10px
             &_items 
@@ -110,6 +110,7 @@
                     cursor: pointer
                     border-bottom: 1px dashed #5675D3
                 &-loader, &-icon 
+                    position: relative
                     display: flex
                     flex-direction: column
                     align-items: center
@@ -182,7 +183,7 @@
                 width: 100%
                 border-radius: 16px 16px 0px 0px
             &-col 
-                width: 48%
+                width: 48.6%
                 display: flex
                 flex-direction: column
                 gap: 15px
@@ -274,12 +275,6 @@
         &-back 
             &.mob 
                 display: none
-        &-title 
-            background: linear-gradient(90deg, #669BEF 0%, #1940B0 99.95%)
-            -webkit-background-clip: text
-            -webkit-text-fill-color: transparent
-            background-clip: text
-            text-fill-color: transparent
         &-text 
             max-width: 865px
             text-align: center
@@ -414,9 +409,9 @@
             position: relative
             .line 
                 position: absolute
-                width: 333px
+                width: 357px
                 top: 37%
-                left: calc(100% - 61px)
+                left: calc(100% - 65px)
                 filter: drop-shadow(0px 16px 13px rgba(50, 92, 192, 0.08))
                 max-width: unset
                 z-index: -1

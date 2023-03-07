@@ -39,23 +39,6 @@
         });
     });
 
-    // function update_pay(){
-    //     $post_data = [
-    //         'ID' => $_GET['post_id'],
-    //         'meta_input' => [
-    //             'pay' => true,
-    //         ],
-    //     ];
-        
-    //     $post_id = wp_insert_post($post_data);
-
-    //     die();
-    // }
-    
-    
-    // add_action('wp_ajax_update_pay', 'update_pay');
-    // add_action('wp_ajax_nopriv_update_pay', 'update_pay');
-
     function delete_order(){
         $deleted = wp_delete_post($_GET['post_id']);
 
@@ -66,13 +49,9 @@
     add_action('wp_ajax_nopriv_delete_order', 'delete_order');
 
     function check_status(){
-        $res = get_field('finish', $_GET['post_id']);
+        $res = get_field('finish', $_GET['post_id']) ? 'succes' : '';
 
-        if (!$res && get_field('deny', $_GET['post_id'])) {
-            $res = [
-                'deny' => get_field('reason', $_GET['post_id'])
-            ];
-        }
+        if (!$res && get_field('deny', $_GET['post_id'])) $res = 'deny';
         
         echo json_encode($res);
 
@@ -130,8 +109,10 @@
 
     function form_steps(){
         $step = (isset($_COOKIE['step']) ? $_COOKIE['step'] : 1);
-        $send = (isset($_COOKIE['send-curr']) ? $_COOKIE['send-curr'] : get_field('code-default_send', 27));
-        $get = (isset($_COOKIE['get-curr']) ? $_COOKIE['get-curr'] : get_field('code-default_get', 27));
+        $currs = [
+            'send-curr' => (isset($_COOKIE['send-curr']) ? $_COOKIE['send-curr'] : get_field('code-default_send', 27)),
+            'get-curr' => (isset($_COOKIE['get-curr']) ? $_COOKIE['get-curr'] : get_field('code-default_get', 27))
+        ];
         $getBank = [];
         $sendBank = [];
         $allCurr = [];
@@ -164,21 +145,19 @@
         }
         while(have_rows('currences', 27)) {
             the_row();
-            $allCurr[get_sub_field('code')] = get_sub_field('rubs');
+            $allCurr[get_sub_field('code')] = [
+                'rubs' => get_sub_field('rubs'),
+                'min' => get_sub_field('min-sum')
+            ];
         }
-        if ($send == $get) {
-            foreach ($allCurr as $code => $rubs) {
-                if ($code != $send) {
-                    $send = $code;
-                    break;
-                }
-            }
-        }
+        // if ($currs['send-curr'] == $currs['get-curr']) {
+        //     $currs[$_COOKIE['revert-curr']] = $_COOKIE['old-curr'];
+        // }
         if (!isset($_COOKIE['get-bank'])) {
-            $getBank = $allBanks[$get][0];
+            $getBank = $allBanks[$currs['get-curr']][0];
         }
         if (!isset($_COOKIE['send-bank'])) {
-            $sendBank = $allBanks[$send][0];
+            $sendBank = $allBanks[$currs['send-curr']][0];
         }
         ?>
         <h2 class="main__form-title text_fz44 text_fw600 text_center">Oбмен валют</h2>
@@ -224,15 +203,15 @@
             <div class="main__form-change-col shadow-block">
                 <div class="title text_fz16">
                     <div class="text text_fw700">Отправляете</div>
-                    <div class="list text_fw500 text_upper list_target target-currs">
-                        <input class="list_input" type="text" name="send-curr" value="<?=$send?>" required hidden>
-                        <span class="list_text"><?=$send?></span>
+                    <div class="list text_fw500 text_upper list_target target-currs" data-revert="get-curr">
+                        <input class="list_input" type="text" name="send-curr" value="<?=$currs['send-curr']?>" required hidden>
+                        <span class="list_text"><?=$currs['send-curr']?></span>
                         <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                         <div class="list_items">
                             <?php
-                                foreach($allCurr as $code => $rubs) {
+                                foreach($allCurr as $code => $values) {
                                     ?>
-                                    <div class="list_items-val" data-value="<?=$code?>"<?php if ($code == $send) echo ' style="display: none;"' ?>>
+                                    <div class="list_items-val" data-value="<?=$code?>"<?php if ($code == $currs['send-curr']) echo ' style="display: none;"' ?>>
                                         <?=$code?>
                                     </div>
                                     <?php
@@ -250,9 +229,9 @@
                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                     <div class="list_items">
                         <?php
-                            foreach($allBanks[$send] as $key => $bank) {
+                            foreach($allBanks[$currs['send-curr']] as $key => $bank) {
                                 ?>
-                                <div class="list_items-val long" data-value="<?=$bank['name']?>"<?=($bank['icon'] ? 'data-img="'.$bank['icon'].'"' : '')?><?php if ($key == 0) echo ' style="display: none;"' ?>>
+                                <div class="list_items-val long" data-value="<?=$bank['name']?>"<?=($bank['icon'] ? 'data-img="'.$bank['icon'].'"' : '')?>>
                                     <?php if ($bank['icon']) : ?>
                                         <img src="<?=$bank['icon']?>" alt="">
                                     <?php endif; ?>
@@ -263,20 +242,21 @@
                         ?>
                     </div>
                 </div>
-                <input type="number" name="send-sum" data-rubs="<?=$allCurr[$send]?>" class="field only-num text_fz16 text_fw500" placeholder="Введите сумму" required>
+                <input type="text" name="send-sum" data-min="<?=$allCurr[$currs['send-curr']]['min']?>" data-rubs="<?=$allCurr[$currs['send-curr']]['rubs']?>" class="field only-num text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
+                <div class="sum-invalid text_fz14"></div>
             </div>
             <div class="main__form-change-col shadow-block">
                 <div class="title text_fz16">
                     <div class="text text_fw700">Получаете</div>
-                    <div class="list text_fw500 text_upper list_target target-currs">
-                        <input class="list_input" type="text" name="get-curr" value="<?=$get?>" required hidden>
-                        <span class="list_text"><?=$get?></span>
+                    <div class="list text_fw500 text_upper list_target target-currs" data-revert="send-curr">
+                        <input class="list_input" type="text" name="get-curr" value="<?=$currs['get-curr']?>" required hidden>
+                        <span class="list_text"><?=$currs['get-curr']?></span>
                         <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                         <div class="list_items">
                             <?php
-                                foreach($allCurr as $code => $rubs) {
+                                foreach($allCurr as $code => $values) {
                                     ?>
-                                    <div class="list_items-val" data-value="<?=$code?>"<?php if ($code == $get) echo ' style="display: none;"' ?>>
+                                    <div class="list_items-val" data-value="<?=$code?>"<?php if ($code == $currs['get-curr']) echo ' style="display: none;"' ?>>
                                         <?=$code?>
                                     </div>
                                     <?php
@@ -294,9 +274,9 @@
                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                     <div class="list_items">
                         <?php
-                            foreach($allBanks[$get] as $key => $bank) {
+                            foreach($allBanks[$currs['get-curr']] as $key => $bank) {
                                 ?>
-                                <div class="list_items-val long" data-value="<?=$bank['name']?>"<?=($bank['icon'] ? 'data-img="'.$bank['icon'].'"' : '')?><?php if ($key == 0) echo ' style="display: none;"' ?>>
+                                <div class="list_items-val long" data-value="<?=$bank['name']?>"<?=($bank['icon'] ? 'data-img="'.$bank['icon'].'"' : '')?>>
                                     <?php if ($bank['icon']) : ?>
                                         <img src="<?=$bank['icon']?>" alt="">
                                     <?php endif; ?>
@@ -307,7 +287,7 @@
                         ?>
                     </div>
                 </div>
-                <input type="number" name="get-sum" data-rubs="<?=$allCurr[$get]?>" class="field only-num text_fz16 text_fw500" placeholder="Введите сумму" required>
+                <input type="test" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
             </div>
             <div class="main__form-change-row shadow-block">
                 <div class="title text_fz16">
@@ -319,11 +299,11 @@
                 <div class="courses text_fz16">
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/course.svg" alt="">
-                        Курс: <b class="text_upper">1 <?=$send?> = <?=round($allCurr[$send]/$allCurr[$get], 2)?> <?=$get?></b>
+                        Курс: <b class="text_upper">1 <?=$currs['send-curr']?> = <?=round($allCurr[$currs['send-curr']]['rubs']/$allCurr[$currs['get-curr']]['rubs'], 2)?> <?=$currs['get-curr']?></b>
                     </div>
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/reserve.svg" alt="">
-                        Резерв: <b class="text_upper"><?=$allReserve[$get]?></b>
+                        Резерв: <b class="text_upper"><?=$allReserve[$currs['get-curr']]?></b>
                     </div>
                 </div>
                 <div class="contacts list field list_target input-change text_fz16">
@@ -337,7 +317,7 @@
                             <img src="<?=bloginfo('template_url')?>/assets/images/mail_color.svg" alt="">
                             Email для связи
                         </div>
-                        <div class="list_items-val long" data-img="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" data-value="Whats App" data-type="tel">
+                        <div class="list_items-val long" data-mask="+_ (___) ___-__-__" data-img="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" data-value="Whats App" data-type="tel">
                             <img src="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" alt="">
                             Whats App
                         </div>
@@ -369,14 +349,14 @@
             <div class="main__form-change-button change button button_shadow text_white text_fz18 text_fw700 text_center">
                 Обменять
             </div>
-            <?php elseif ($step == 2 && !isset($_COOKIE['status'])) : ?>
+            <?php elseif ($step == 2 && isset($_COOKIE['status']) && $_COOKIE['status'] == 'send-money') : ?>
             <?php
                 $post_id = $_COOKIE['order-post-id'];    
             ?>
-            <div class="main__form-change-order">
+            <div class="main__form-change-order" data-date-out="<?=get_post_timestamp($post_id) + 1080?>">
                 <div class="main__form-change-head">
                     <h2 class="text_fz18 text_fw700">Ваша заявка создана</h2>
-                    <span class="text_fz16 text_fw600"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
+                    <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
                 </div>
                 <div class="main__form-change-row">
                     <div class="title text_fz16 text_fw600">Вы обмениваете <?php the_field('sender_bank', $post_id) ?> на <?php the_field('getter_bank', $post_id) ?>:</div>
@@ -416,11 +396,11 @@
                     </div>
                     <div class="info-row text_fz14 text_fz500">
                         <span>Курс:</span>
-                        <span class="text_upper">1 <?php the_field('sender_carrency', $post_id) ?> = <?=round($allCurr[get_field('sender_carrency', $post_id)]/$allCurr[get_field('getter_carrency', $post_id)], 2)?> <?php the_field('getter_carrency', $post_id) ?></span>
+                        <span class="text_upper">1 <?php the_field('sender_carrency', $post_id) ?> = <?=round($allCurr[get_field('sender_carrency', $post_id)]['rubs']/$allCurr[get_field('getter_carrency', $post_id)]['rubs'], 2)?> <?php the_field('getter_carrency', $post_id) ?></span>
                     </div>
                     <div class="info-row text_fz14 text_fz500">
                         <span class="window">Окно оплаты</span>
-                        <span class="time text_fw500">18:00</span>
+                        <span class="time text_fw500"><span id="timer-minutes">18</span>:<span id="timer-seconds">00</span></span>
                     </div>
                     <div class="modal__buttons">
                         <div class="button delete-order button_red text_fz16 text_fw500 text_center">
@@ -439,11 +419,16 @@
             <div class="main__form-change-order check-status-interval">
                 <div class="main__form-change-head">
                     <h2 class="text_fz18 text_fw700">Ваша заявка в обработке</h2>
-                    <span class="text_fz16 text_fw600"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
+                    <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
                 </div>
                 <div class="main__form-change-row">
                     <div class="main__form-change-order-loader text_fz14">
-                        <img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt="">
+                        <div class="loading-anim">
+                            <img src="/wp-content/themes/obmenka/assets/images/load1.png" alt="">
+                            <img src="/wp-content/themes/obmenka/assets/images/load2.png" alt="">
+                            <img src="/wp-content/themes/obmenka/assets/images/load3.png" alt="">
+                            <img src="/wp-content/themes/obmenka/assets/images/load4.png" alt="">
+                        </div>
                         <span>Обрабатываем заявку...</span>
                     </div>
                     <div class="order-info text_fz16 text_center">
@@ -458,7 +443,7 @@
             <div class="main__form-change-order result">
                 <div class="main__form-change-head">
                     <h2 class="text_fz18 text_fw700"><?=get_field('deny', $post_id) ? 'Ваша заявка отклонена' : 'Ваша заявка выполнена'?></h2>
-                    <span class="text_fz16 text_fw600"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
+                    <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
                 </div>
                 <div class="main__form-change-row">
                     <div class="main__form-change-order-icon text_fz20 text_fw600">

@@ -44,9 +44,9 @@ const mask = () => {
         }
     }
 
-    window.addEventListener('input', initMask);
-    window.addEventListener('focus', initMask);
-    window.addEventListener('blur', initMask);
+    document.body.addEventListener('input', initMask);
+    document.body.addEventListener('focus', initMask);
+    document.body.addEventListener('blur', initMask);
 };
 
 export default mask;

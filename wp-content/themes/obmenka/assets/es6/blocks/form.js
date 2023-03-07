@@ -11,7 +11,7 @@ const form = () => {
         }
         function hideModals() {
             document.querySelector('.modal').classList.remove('active');
-            document.querySelectorAll('.modal__item').forEach(item => item.classList.remove());
+            document.querySelectorAll('.modal__item').forEach(item => item.classList.remove('active'));
         }
         function showModal(id) {
             const modalItem = document.querySelector(id);
@@ -103,6 +103,23 @@ const form = () => {
             to = +to.replace(',', '.');
             return (from/to).toFixed(2);
         }
+        function currencySum(target1, target2_name) {
+            let sum = document.querySelector(`input[name="${target2_name}"]`);
+                sum.value = calcCurrency(target1.value, target1.getAttribute('data-rubs'), sum.getAttribute('data-rubs'));
+
+            if (!target1.value) sum.value = '';
+
+            let dataInp = target1.getAttribute('data-min') ? target1 : sum.getAttribute('data-min') ? sum : '',
+                dataMin = dataInp ? +dataInp.getAttribute('data-min') : '';
+
+            if (dataMin && +dataInp.value < dataMin) {
+                dataInp.classList.add('invalid');
+                dataInp.nextElementSibling.textContent = "Мин. сумма: " + dataMin;
+            } else if (dataMin) {
+                dataInp.classList.remove('invalid');
+                dataInp.nextElementSibling.textContent = '';
+            }
+        }
         async function getData(url) {
             let res = await fetch(url, {
                 method: "GET"
@@ -122,28 +139,34 @@ const form = () => {
         
         const formCont = document.querySelector('.change-form-cont');
 
-        let dataChange = [];
+        let dataChange = [],
+            loadingAnim = `
+                <div class="main-loading loading-anim">
+                    <img src="/wp-content/themes/obmenka/assets/images/load1.png" alt="">
+                    <img src="/wp-content/themes/obmenka/assets/images/load2.png" alt="">
+                    <img src="/wp-content/themes/obmenka/assets/images/load3.png" alt="">
+                    <img src="/wp-content/themes/obmenka/assets/images/load4.png" alt="">
+                </div>`;
 
         function rebuildForm(loader = true) {
             hideModals();
-            if (loader) formCont.innerHTML += '<div class="main-loading"><img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt=""></div>';
+            if (loader) formCont.innerHTML += loadingAnim;
             getData(formCont.getAttribute('data-url')+'?action=form_steps')
             .then((res) => {
                 formCont.innerHTML = res;
+                if (getCookie('step') == 2 && getCookie('status') == 'send-money') {
+                    timerOut();
+                }
+                if (getCookie('step') == 3) {
+                    setTimeout(() => {
+                        clearAllCookies();
+                    }, 2000);
+                }
             });
         }
 
-        // function setPay() {
-        //     formCont.innerHTML += '<div class="main-loading"><img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt=""></div>';
-        //     getData(formCont.getAttribute('data-url')+'?action=update_pay&post_id='+getCookie('order-post-id'))
-        //     .then(() => {
-        //         setCookie('status', 'get-money', {path: '/', expires: 24*60*60*30});
-        //         rebuildForm(false);
-        //     });
-        // }
-
         function deleteOrder() {
-            formCont.innerHTML += '<div class="main-loading"><img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt=""></div>';
+            formCont.innerHTML += loadingAnim;
             getData(formCont.getAttribute('data-url')+'?action=delete_order&post_id='+getCookie('order-post-id'))
             .then(() => {
                 clearAllCookies();
@@ -152,17 +175,14 @@ const form = () => {
         }
 
         function checkStatus() {
-            setInterval(() => {
+            let checkStat = setInterval(() => {
                 getData(formCont.getAttribute('data-url')+'?action=check_status&post_id='+getCookie('order-post-id'))
                 .then((res) => {
                     res = JSON.parse(res);
-                    if (Array.isArray(res)) {
-                        setCookie('step', 3, {path: '/', expires: 24*60*60*30});
-                        setCookie('status', 'fail', {path: '/', expires: 24*60*60*30});
-                        rebuildForm();
-                    } else if (res) {
-                        setCookie('step', 3, {path: '/', expires: 24*60*60*30});
-                        setCookie('status', 'succes', {path: '/', expires: 24*60*60*30});
+                    if (res) {
+                        setCookie('step', 3, {path: '/', expires: 2*60*60});
+                        setCookie('status', res, {path: '/', expires: 2*60*60});
+                        clearInterval(checkStat);
                         rebuildForm();
                     }
                 });
@@ -176,18 +196,53 @@ const form = () => {
                 url += '&'+dat['name']+'='+dat['value'];
             });
 
-            formCont.innerHTML += '<div class="main-loading"><img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt=""></div>';
+            formCont.innerHTML += loadingAnim;
             getData(formCont.getAttribute('data-url')+url)
             .then((res) => {
-                setCookie('order-post-id', res, {path: '/', expires: 24*60*60*30});
-                setCookie('step', 2, {path: '/', expires: 24*60*60*30});
+                setCookie('order-post-id', res, {path: '/', expires: 2*60*60});
+                setCookie('step', 2, {path: '/', expires: 2*60*60});
+                setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
                 rebuildForm(false);
             });
         }
 
-        rebuildForm();
-        formCont.innerHTML += '<div class="main-loading"><img src="/wp-content/themes/obmenka/assets/images/loading.gif" alt=""></div>';
+        function isEmailValid(email) {
+            const emailRegexp = new RegExp(
+                /^[a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1}([a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1})*[a-zA-Z0-9]@[a-zA-Z0-9][-\.]{0,1}([a-zA-Z][-\.]{0,1})*[a-zA-Z0-9]\.[a-zA-Z0-9]{1,}([\.\-]{0,1}[a-zA-Z]){0,}[a-zA-Z0-9]{0,}$/i
+            );
+            
+            return emailRegexp.test(email);
+        }
 
+        function timerOut() {
+            const deadline = new Date(+document.querySelector('[data-date-out]').getAttribute('data-date-out') * 1000);
+            
+            const minutes = document.querySelector('#timer-minutes'),
+                  seconds = document.querySelector('#timer-seconds');
+
+            let timerId = null;
+            
+            // вычисляем разницу дат и устанавливаем оставшееся времени в качестве содержимого элементов
+            function countdownTimer() {
+                const diff = deadline - new Date();
+
+                if (diff <= 0) {
+                    clearInterval(timerId);
+                    deleteOrder();
+                }
+
+                let min = diff > 0 ? Math.floor(diff / 1000 / 60) % 60 : 0,
+                    sec = diff > 0 ? Math.floor(diff / 1000) % 60 : 0;
+
+                minutes.textContent = min < 10 ? '0' + min : min;
+                seconds.textContent = sec < 10 ? '0' + sec : sec;
+            }
+            countdownTimer();
+            timerId = setInterval(countdownTimer, 1000);
+        }
+
+        rebuildForm();
+        
         const checkLabel = document.querySelector('.modal__check label');
 
         checkLabel.addEventListener('click', (e) => {
@@ -201,18 +256,19 @@ const form = () => {
 
         if (getCookie('step') == 3) {
             setTimeout(() => {
-                dclearAllCookies();
-            }, 5000);
+                clearAllCookies();
+            }, 2000);
         }
 
         window.addEventListener('keyup', (e) => {
+            if (e.target.classList.contains('only-number')) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            }
             if (e.target.getAttribute('name') == 'send-sum') {
-                let sum = document.querySelector('input[name="get-sum"]');
-                sum.value = calcCurrency(e.target.value, e.target.getAttribute('data-rubs'), sum.getAttribute('data-rubs'));
+                currencySum(e.target, 'get-sum');
             }
             if (e.target.getAttribute('name') == 'get-sum') {
-                let sum = document.querySelector('input[name="send-sum"]');
-                sum.value = calcCurrency(e.target.value, e.target.getAttribute('data-rubs'), sum.getAttribute('data-rubs'));
+                currencySum(e.target, 'send-sum');
             }
             if (e.target.classList.contains('card-validate')) {
                 if (!validateCreditCard(e.target.value)) {
@@ -236,19 +292,29 @@ const form = () => {
                 hideModals();
             }
             if (e.target.classList.contains('list_items-val')) {
-                if (e.target.closest('.list_target').classList.contains('target-currs')) {
+                let listTarget = e.target.closest('.list_target');
+                if (listTarget.classList.contains('target-currs')) {
                     setTimeout(() => {
-                        setCookie('send-curr', document.querySelector('input[name="send-curr"]').value, {path: '/', expires: 24*60*60*30});
-                        setCookie('get-curr', document.querySelector('input[name="get-curr"]').value, {path: '/', expires: 24*60*60*30});
+                        let currs = {
+                            'send-curr': document.querySelector('input[name="send-curr"]').value,
+                            'get-curr': document.querySelector('input[name="get-curr"]').value
+                        };
+
+                        if (currs["send-curr"] == currs["get-curr"] && listTarget.getAttribute('data-revert')) {
+                            currs[listTarget.getAttribute('data-revert')] = listTarget.getAttribute('data-old');
+                        }
+
+                        setCookie('send-curr', currs["send-curr"], {path: '/', expires: 2*60*60});
+                        setCookie('get-curr', currs["get-curr"], {path: '/', expires: 2*60*60});
                         deleteCookie('get-bank');
                         deleteCookie('send-bank');
                         rebuildForm();
                     }, 500);
                 }
-                if (e.target.closest('.list_target').classList.contains('target-banks')) {
+                if (listTarget.classList.contains('target-banks')) {
                     setTimeout(() => {
-                        setCookie('send-bank', document.querySelector('input[name="send-bank"]').value, {path: '/', expires: 24*60*60*30});
-                        setCookie('get-bank', document.querySelector('input[name="get-bank"]').value, {path: '/', expires: 24*60*60*30});
+                        setCookie('send-bank', document.querySelector('input[name="send-bank"]').value, {path: '/', expires: 2*60*60});
+                        setCookie('get-bank', document.querySelector('input[name="get-bank"]').value, {path: '/', expires: 2*60*60});
                         rebuildForm();
                     }, 500);
                 }
@@ -268,12 +334,15 @@ const form = () => {
             if (e.target.classList.contains('continue-pay')) {
                 addScroll();
                 hideModals();
-                setCookie('status', 'get-money', {path: '/', expires: 24*60*60*30});
+                setCookie('status', 'get-money', {path: '/', expires: 2*60*60});
                 checkStatus();
                 rebuildForm();
             }
             if (e.target.classList.contains('pay-done')) {
                 showModal('#pay-done');
+            }
+            if (e.target.classList.contains('window')) {
+                showModal('#instruction');
             }
             if (e.target.classList.contains('main__form-change-button')) {
                 const sendBank = formCont.querySelector('input[name="send-bank"]'),
@@ -288,7 +357,7 @@ const form = () => {
 
                 let valid = true;
 
-                let inputs = [sendSum, getSum, sendCard, getCard],
+                let inputs = [sendSum, sendCard, getCard],
                     fields = [sendBank, getBank, contacts];
 
                 inputs.forEach(input => {
@@ -303,6 +372,11 @@ const form = () => {
                         valid = false;
                     };
                 });
+
+                if (contacts.type == 'email' && !isEmailValid(contacts.value)) {
+                    contacts.closest('.field').classList.add('invalid');
+                    valid = false;
+                }
 
                 if (valid) {
                     showModal('#how-work');

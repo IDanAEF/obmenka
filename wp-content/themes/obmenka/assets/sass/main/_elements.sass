@@ -28,6 +28,7 @@ img
     max-height: 100%
     width: auto
     height: auto
+    object-fit: contain
 .container
     width: 1400px
     position: relative
@@ -48,6 +49,12 @@ img
         font-style: italic
     &_center
         text-align: center
+    &_colorfull
+        background: linear-gradient(90deg, #669BEF 0%, #1940B0 99.95%)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+        text-fill-color: transparent
     &_black
         &, *
             color: #000
@@ -134,3 +141,11 @@ img
             justify-content: center
             border: 1px solid #fff
             border-radius: 100%
+.slide-field
+    display: flex
+    justify-content: space-between
+    gap: 64px
+    .slide-content
+        width: 891px
+    .slide-sidebar
+        width: 414px
