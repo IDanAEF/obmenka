@@ -30,19 +30,19 @@
                         the_row();
                         $color = get_sub_field('color');
                         ?>
-                        <article class="main__ways-item text_<?=$color?>">
+                        <a href="<?php the_sub_field('link') ?>" class="main__ways-item text_<?=$color?>">
                             <img src="<?php the_sub_field('back') ?>" alt="" class="main__ways-item-back img_bg">
                             <div class="main__ways-item-text">
                                 <h3 class="main__ways-item-title text_fz38 text_fw700"><?php the_sub_field('name') ?></h3>
                                 <div class="main__ways-item-descr text_fz20 text_fw500"><?php the_sub_field('descr') ?></div>
                             </div>
-                            <a href="<?php the_sub_field('link') ?>" class="main__ways-item-link button button_arrow text_fz14 text_upper">
+                            <div class="main__ways-item-link button button_arrow text_fz14 text_upper">
                                 Подробнее
                                 <span>
                                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow.svg" alt="">
                                 </span>
-                            </a>
-                        </article>
+                            </div>
+                        </a>
                         <?php
                     }
                 ?>

@@ -242,7 +242,7 @@
                         ?>
                     </div>
                 </div>
-                <input type="text" name="send-sum" data-min="<?=$allCurr[$currs['send-curr']]['min']?>" data-rubs="<?=$allCurr[$currs['send-curr']]['rubs']?>" class="field only-num text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
+                <input type="text" name="send-sum" data-min="<?=$allCurr[$currs['send-curr']]['min']?>" data-rubs="<?=$allCurr[$currs['send-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
                 <div class="sum-invalid text_fz14"></div>
             </div>
             <div class="main__form-change-col shadow-block">
@@ -287,7 +287,7 @@
                         ?>
                     </div>
                 </div>
-                <input type="test" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
+                <input type="test" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
             </div>
             <div class="main__form-change-row shadow-block">
                 <div class="title text_fz16">
@@ -332,7 +332,7 @@
                         <div class="cards-title text_fz14 text_fw600">Реквизиты отправителя:</div>
                         <div class="cards-field text_fz16">
                             <img src="<?=$sendBank['icon']?>" alt="" class="send-card-img">
-                            <input type="text" name="send-card" data-mask="____ ____ ____ ____" class="card-validate field" placeholder="Карта <?=$sendBank['name']?>" required>
+                            <input type="text" name="send-card" data-mask="____ ____ ____ ____" class="card-validate field not-click" placeholder="Карта <?=$sendBank['name']?>" required>
                         </div>
                         <div class="cards-invalid text_fz14"></div>
                     </div>
@@ -340,7 +340,7 @@
                         <div class="cards-title text_fz14 text_fw600">Реквизиты получателя:</div>
                         <div class="cards-field text_fz16">
                             <img src="<?=$getBank['icon']?>" alt="" class="get-card-img">
-                            <input type="text" name="get-card" data-mask="____ ____ ____ ____" class="card-validate field" placeholder="Карта <?=$getBank['name']?>" required>
+                            <input type="text" name="get-card" data-mask="____ ____ ____ ____" class="card-validate field not-click" placeholder="Карта <?=$getBank['name']?>" required>
                         </div>
                         <div class="cards-invalid text_fz14"></div>
                     </div>
@@ -402,7 +402,7 @@
                         <span class="window">Окно оплаты</span>
                         <span class="time text_fw500"><span id="timer-minutes">18</span>:<span id="timer-seconds">00</span></span>
                     </div>
-                    <div class="modal__buttons">
+                    <div class="modal__buttons mt">
                         <div class="button delete-order button_red text_fz16 text_fw500 text_center">
                             Отмена
                         </div>

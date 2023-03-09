@@ -51,7 +51,7 @@ const form = () => {
             return false;
         }
         function validateCreditCard(value) {
-            return Validate(value);
+            return Validate(value) && value.replace(/\s/g, '').length >= 13;
         }
         function getCookie(name, json=false) {
             if (!name) return undefined;
@@ -222,7 +222,6 @@ const form = () => {
 
             let timerId = null;
             
-            // вычисляем разницу дат и устанавливаем оставшееся времени в качестве содержимого элементов
             function countdownTimer() {
                 const diff = deadline - new Date();
 
@@ -285,7 +284,7 @@ const form = () => {
         document.body.addEventListener('click', (e) => {
             if (e.target.classList.contains('invalid') || e.target.closest('.invalid')) {
                 let elem = e.target.classList.contains('invalid') ? e.target : e.target.closest('.invalid');
-                elem.classList.remove('invalid');
+                if (!elem.classList.contains('not-click')) elem.classList.remove('invalid');
             }
             if (e.target.classList.contains('back')) {
                 addScroll();
@@ -302,12 +301,18 @@ const form = () => {
 
                         if (currs["send-curr"] == currs["get-curr"] && listTarget.getAttribute('data-revert')) {
                             currs[listTarget.getAttribute('data-revert')] = listTarget.getAttribute('data-old');
+
+                            let bankRevert = getCookie('send-bank');
+
+                            setCookie('send-bank', getCookie('get-bank'), {path: '/', expires: 2*60*60});
+                            setCookie('get-bank', bankRevert, {path: '/', expires: 2*60*60});
+                        } else {
+                            deleteCookie('get-bank');
+                            deleteCookie('send-bank');
                         }
 
                         setCookie('send-curr', currs["send-curr"], {path: '/', expires: 2*60*60});
                         setCookie('get-curr', currs["get-curr"], {path: '/', expires: 2*60*60});
-                        deleteCookie('get-bank');
-                        deleteCookie('send-bank');
                         rebuildForm();
                     }, 500);
                 }

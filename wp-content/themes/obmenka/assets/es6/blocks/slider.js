@@ -37,7 +37,7 @@ const slider = () => {
                 j == count ? j = 0 : j++;
                 
                 setSlider(sliderItems, points, j);
-            }, 15000);
+            }, 7000);
 
             points.forEach((point, i) => {
                 point.addEventListener('click', () => {
