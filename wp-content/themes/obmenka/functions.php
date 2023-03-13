@@ -349,11 +349,48 @@
             <div class="main__form-change-button change button button_shadow text_white text_fz18 text_fw700 text_center">
                 Обменять
             </div>
+            <?php elseif ($step == 2 && isset($_COOKIE['status']) && $_COOKIE['status'] == 'check-info') : ?>
+            <?php
+                $post_id = $_COOKIE['order-post-id'];
+
+                $timeChanger = get_post_timestamp($post_id) + 90 - time();
+            ?>
+            <div class="main__form-change-order check-status-interval">
+                <div class="main__form-change-head">
+                    <h2 class="text_fz18 text_fw700">Ваша заявка проверяется, ожидайте</h2>
+                </div>
+                <div class="main__form-change-row">
+                    <div class="timer-container" data-time-count="<?=($timeChanger <= 0 ? 1 : $timeChanger)?>">
+                        <svg class="progress-ring" viewBox="0 0 520 520">
+                            <circle
+                                stroke="#B9B9B9"
+                                stroke-width="4"
+                                fill="transparent"
+                                r="255"
+                                cx="260"
+                                cy="260" />
+                            <circle
+                                class="progress-ring-circle"
+                                stroke="#5675D3"
+                                stroke-width="16"
+                                fill="transparent"
+                                stroke-linecap="round"
+                                r="255"
+                                cx="260"
+                                cy="260" />
+                        </svg>
+                        <div class="time-vars">
+                            <span class="all-seconds text_fz18 text_fw500">90 с</span>
+                            <span class="changer-time" id="timer-circle-seconds"><?=($timeChanger <= 0 ? '01' : ($timeChanger < 10 ? '0'.$timeChanger : $timeChanger))?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <?php elseif ($step == 2 && isset($_COOKIE['status']) && $_COOKIE['status'] == 'send-money') : ?>
             <?php
                 $post_id = $_COOKIE['order-post-id'];    
             ?>
-            <div class="main__form-change-order" data-date-out="<?=get_post_timestamp($post_id) + 1080?>">
+            <div class="main__form-change-order" data-date-out="<?=get_post_timestamp($post_id) + 1170?>">
                 <div class="main__form-change-head">
                     <h2 class="text_fz18 text_fw700">Ваша заявка создана</h2>
                     <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>

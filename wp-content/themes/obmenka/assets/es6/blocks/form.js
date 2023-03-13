@@ -50,6 +50,7 @@ const form = () => {
 
             return false;
         }
+        //Валидация банковских карт
         function validateCreditCard(value) {
             return Validate(value) && value.replace(/\s/g, '').length >= 13;
         }
@@ -97,12 +98,14 @@ const form = () => {
                 path: '/'
             });
         }
+        //Перевод в другую валюту на основе рубля
         function calcCurrency(count, from, to) {
             if (!count) count = 0;
             from = +from.replace(',', '.')*count;
             to = +to.replace(',', '.');
             return (from/to).toFixed(2);
         }
+        //Автоматическая подстановка суммы по валютам
         function currencySum(target1, target2_name) {
             let sum = document.querySelector(`input[name="${target2_name}"]`);
                 sum.value = calcCurrency(target1.value, target1.getAttribute('data-rubs'), sum.getAttribute('data-rubs'));
@@ -148,12 +151,14 @@ const form = () => {
                     <img src="/wp-content/themes/obmenka/assets/images/load4.png" alt="">
                 </div>`;
 
-        function rebuildForm(loader = true) {
+        //Обновить форму
+        function rebuildForm(loader = true, circleTimerStart = false) {
             hideModals();
             if (loader) formCont.innerHTML += loadingAnim;
             getData(formCont.getAttribute('data-url')+'?action=form_steps')
             .then((res) => {
                 formCont.innerHTML = res;
+                if (circleTimerStart) circleTimer();
                 if (getCookie('step') == 2 && getCookie('status') == 'send-money') {
                     timerOut();
                 }
@@ -165,6 +170,7 @@ const form = () => {
             });
         }
 
+        //Удаление заявки
         function deleteOrder() {
             formCont.innerHTML += loadingAnim;
             getData(formCont.getAttribute('data-url')+'?action=delete_order&post_id='+getCookie('order-post-id'))
@@ -174,6 +180,7 @@ const form = () => {
             });
         }
 
+        //Проверка статуса заявки (На 3-ем шаге)
         function checkStatus() {
             let checkStat = setInterval(() => {
                 getData(formCont.getAttribute('data-url')+'?action=check_status&post_id='+getCookie('order-post-id'))
@@ -189,6 +196,7 @@ const form = () => {
             }, 10000);
         }
 
+        //Отправление данных для создания заявки
         function sendData() {
             let url = '?action=create_order';
 
@@ -201,8 +209,9 @@ const form = () => {
             .then((res) => {
                 setCookie('order-post-id', res, {path: '/', expires: 2*60*60});
                 setCookie('step', 2, {path: '/', expires: 2*60*60});
-                setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
-                rebuildForm(false);
+                setCookie('status', 'check-info', {path: '/', expires: 2*60*60});
+                //setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
+                rebuildForm(false, true);
             });
         }
 
@@ -214,6 +223,7 @@ const form = () => {
             return emailRegexp.test(email);
         }
 
+        //Таймер "Окно оплаты" на 2-ом шаге
         function timerOut() {
             const deadline = new Date(+document.querySelector('[data-date-out]').getAttribute('data-date-out') * 1000);
             
@@ -240,7 +250,63 @@ const form = () => {
             timerId = setInterval(countdownTimer, 1000);
         }
 
-        rebuildForm();
+        //Таймер обратного отсчёта после создания заявки
+        function circleTimer() {
+            let totalTime = 1000 * 90,
+                timerTime = 1000 * +document.querySelector('.timer-container').getAttribute('data-time-count'),
+                countDownInterval;
+
+            const ringSvg = document.querySelector('.timer-container .progress-ring .progress-ring-circle'),
+                  circleSeconds = document.querySelector('#timer-circle-seconds');
+
+            const countDown = () => {
+                countDownInterval = setInterval(() => {
+                    timerTime = timerTime - 1000;
+                    updateTime(timerTime);
+                    
+                    if (timerTime <= 5000) {
+                        ringSvg.style.stroke = '#D91C1C';
+                    }
+                    
+                    if (timerTime < 1000) {
+                        setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
+                        rebuildForm();
+                        reset();
+                    }
+                }, 1000);
+            }
+
+            const convertToSeconds = (timeInMs) => {
+                let seconds = Math.floor(timeInMs / 1000);
+                
+                seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+                return `${seconds}`;
+            }
+
+            const updateProgress = (timeLeft) => {
+                const percentageLeft = 1 - (timeLeft / totalTime);
+                const offset = 1602 * percentageLeft;
+                ringSvg.style.strokeDashoffset = offset;
+            }
+
+            const updateTime = (timeInMs) => {
+                const formattedTime = convertToSeconds(timeInMs);
+                circleSeconds.innerText = formattedTime;
+                updateProgress(timeInMs);
+            }
+
+            const reset = () => {
+                clearInterval(countDownInterval);
+                timerTime = totalTime;
+                updateTime(totalTime);
+            }
+
+            updateProgress(timerTime);
+            countDown();
+        }
+
+        rebuildForm(true, true);
         
         const checkLabel = document.querySelector('.modal__check label');
 
@@ -293,6 +359,7 @@ const form = () => {
             if (e.target.classList.contains('list_items-val')) {
                 let listTarget = e.target.closest('.list_target');
                 if (listTarget.classList.contains('target-currs')) {
+                    //Если в выпадающем листе выбрана валюта - перезаписываем куки и обновляем форму
                     setTimeout(() => {
                         let currs = {
                             'send-curr': document.querySelector('input[name="send-curr"]').value,
@@ -316,6 +383,7 @@ const form = () => {
                         rebuildForm();
                     }, 500);
                 }
+                //Если в выпадающем списке выбран банк - перезаписываем куки и обновляем форму
                 if (listTarget.classList.contains('target-banks')) {
                     setTimeout(() => {
                         setCookie('send-bank', document.querySelector('input[name="send-bank"]').value, {path: '/', expires: 2*60*60});
@@ -324,9 +392,11 @@ const form = () => {
                     }, 500);
                 }
             }
+            //Кнопка отмены заявки на 2-ом шаге
             if (e.target.classList.contains('delete-order')) {
                 deleteOrder();
             }
+            //Пользователь подтверждает введённые данные, создаётся заявка 
             if (e.target.classList.contains('continue')) {
                 let privacy = document.querySelector('#privacy');
                 if (!privacy.checked) checkLabel.querySelector('.checkbox').classList.add('invalid');
@@ -336,6 +406,7 @@ const form = () => {
                     sendData();
                 }
             }
+            //Пользователь подтвердил, что совершил платёж
             if (e.target.classList.contains('continue-pay')) {
                 addScroll();
                 hideModals();
@@ -349,6 +420,7 @@ const form = () => {
             if (e.target.classList.contains('window')) {
                 showModal('#instruction');
             }
+            //Сбор данных для заявки
             if (e.target.classList.contains('main__form-change-button')) {
                 const sendBank = formCont.querySelector('input[name="send-bank"]'),
                       getBank = formCont.querySelector('input[name="get-bank"]'),

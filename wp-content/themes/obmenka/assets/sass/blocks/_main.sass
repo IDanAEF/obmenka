@@ -1,4 +1,42 @@
 .main
+    .timer-container
+        position: relative
+        width: 230px
+        height: 230px
+        display: flex
+        align-items: center
+        justify-content: center
+        margin: 0 auto
+        .time-vars
+            position: relative
+        .all-seconds
+            position: absolute
+            left: 50%
+            transform: translateX(-50%)
+            bottom: calc(100% + 7px)
+            color: #B9B9B9
+            white-space: nowrap
+        .changer-time
+            font-size: 60px
+            line-height: 73px
+            font-weight: 500
+        .progress-ring
+            position: absolute
+            top: 0
+            left: 0
+            width: 100%
+            overflow: visible
+        .progress-ring-circle 
+            stroke-dasharray: 1602
+            stroke-dashoffset: 0
+            transform: rotate(-90deg)
+            transform-origin: center
+            transition: all .1s linear
+        .timer-circle
+            border-radius: 100%
+            display: flex
+            justify-content: center
+            align-items: center
     &__form 
         position: relative
         .change-form-cont
