@@ -83,6 +83,21 @@
             &-item 
                 gap: 16px 
                 padding: 20px
+    .abroad-pay
+        &__promo 
+            &-image 
+                top: 70%
+            &-codes 
+                max-width: 590px 
+                margin: 28px auto
+        &__form 
+            &-feed 
+                form 
+                    padding-right: 0
+    .reviews
+        &__promo 
+            &-image 
+                top: 27%
     .terms 
         &__promo 
             &-text 
@@ -115,6 +130,9 @@
             &20
                 font-size: 17px
                 line-height: 22px
+            &24 
+                font-size: 20px
+                line-height: 24px
             &28
                 font-size: 22px
                 line-height: 29px
@@ -202,6 +220,43 @@
                         min-height: 55px
             &-links 
                 gap: 16px
+    .abroad-pay
+        &__promo 
+            &-text 
+                max-width: 685px
+            &-codes 
+                max-width: 515px
+                gap: 16px 
+                &-row
+                    gap: 28px
+        &__form 
+            padding: 70px 0px
+            &-feed 
+                form 
+                    gap: 6px
+            &-row 
+                gap: 16px
+                margin-bottom: 16px
+            &-col 
+                padding: 27px
+                .title 
+                    margin-bottom: 13px
+            &-for 
+                &-items 
+                    gap: 16px
+    .reviews
+        &__list 
+            padding: 70px 0px
+            &-all 
+                margin: 20px 0px 50px
+        &__show 
+            margin-top: 40px
+        &__items 
+            gap: 16px
+            .main__reviews-slider-item
+                padding: 20px
+                &-body 
+                    padding-top: 16px
     .terms
         &__promo 
             &-text 
@@ -331,6 +386,29 @@
         &__contacts 
             &-title, &-descr 
                 text-align: center
+    .abroad-pay
+        &__form
+            &-feed 
+                grid-column-start: unset
+                grid-column-end: unset
+            &-row
+                &:last-child, &:nth-child(2)
+                    grid-template: auto / repeat(1, 1fr)
+    .reviews
+        &__promo 
+            &-image 
+                top: 36%
+        &__list 
+            padding: 40px 0px
+            &-all 
+                margin: 30px 0px
+        &__items 
+            .main__reviews-slider-item
+                &-image
+                    width: 50px
+                    height: 50px
+                &-body 
+                    line-height: 21px
     .terms 
         &__promo 
             &-text 
@@ -512,6 +590,9 @@
             &20
                 font-size: 15px
                 line-height: 18px
+            &24 
+                font-size: 17px
+                line-height: 20px
             &28
                 font-size: 17px
                 line-height: 20px
@@ -577,6 +658,43 @@
                     .img 
                         min-width: 45px 
                         min-height: 45px
+    .abroad-pay
+        &__promo 
+            &-codes 
+                margin: 20px auto
+                &-row 
+                    gap: 15px
+        &__form 
+            padding: 40px 0px
+            &-feed 
+                form 
+                    input 
+                        padding: 10px 40px
+                        margin: 4px 0px
+                    .input 
+                        img 
+                            left: 11px
+            &-row 
+                gap: 8px 
+                margin-bottom: 8px
+                grid-template: auto / repeat(1, 1fr)
+            &-col 
+                padding: 17px
+                .title 
+                    margin-bottom: 9px
+                    gap: 9px
+                .button 
+                    margin-top: 11px
+    .reviews
+        &__list 
+            &-all 
+                margin: 15px 0px
+        &__item 
+            &-vk 
+                margin-top: 15px
+        &__items 
+            grid-template: auto / repeat(1, 1fr)
+            gap: 10px
     .main
         &__promo
             &-title 
@@ -655,6 +773,22 @@
         &__translation
             .container
                 grid-template: auto / repeat(1,1fr)
+    .abroad-pay
+        &__promo 
+            &-image 
+                top: 17%
+            &-codes 
+                padding: 20px
+                &-row 
+                    gap: 8px 
+                    flex-direction: column
+    .reviews
+        &__promo 
+            &-image 
+                top: 31%
+        &__items 
+            .main__reviews-slider-item
+                padding: 14px
     .about
         &__promo 
             padding: 100px 0px 50px

@@ -1,0 +1,41 @@
+.reviews
+    &__list 
+        padding: 76px 0px 111px
+        &-all 
+            display: flex
+            flex-direction: column
+            align-items: center
+            gap: 4px 
+            margin: 24px 0px 108px
+            span 
+                color: #B0B0B0
+        &-count
+            display: flex
+            align-items: center
+            gap: 4px 
+    &__show
+        display: flex
+        align-items: center
+        justify-content: center
+        gap: 8px 
+        margin-top: 90px
+        cursor: pointer
+    &__item 
+        &-vk
+            display: flex
+            align-items: center
+            justify-content: flex-end
+            gap: 8px
+            margin-top: 29px 
+    &__items
+        display: grid
+        grid-template: auto / repeat(2, 1fr)
+        gap: 32px
+        .main__reviews-slider-item
+            padding: 40px
+            &-image
+                width: 80px
+                height: 80px
+            &-body 
+                line-height: 26px
+                padding-top: 32px 

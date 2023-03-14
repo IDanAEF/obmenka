@@ -1,0 +1,98 @@
+.abroad-pay
+    &__promo
+        &-text 
+            max-width: 931px
+        &-codes
+            background: #FFFFFF
+            box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+            border-radius: 10px
+            padding: 32px
+            display: flex
+            flex-direction: column
+            align-items: center
+            gap: 24px
+            max-width: 680px
+            margin: 40px auto
+            &-row 
+                display: flex
+                align-items: center
+                gap: 52px
+            &-date 
+                color: #64748B
+        &-button 
+            margin: 0 auto
+    &__form 
+        padding: 96px 0px
+        &-feed 
+            grid-column-start: 1
+            grid-column-end: 3
+            form 
+                padding-right: 86px
+                display: flex
+                flex-direction: column
+                gap: 16px
+                .policy
+                    a 
+                        text-decoration: underline
+                .label 
+                    width: 100%
+                    span 
+                        color: #64748B
+                        &.error
+                            color: #D91C1C
+                .input 
+                    position: relative
+                    img 
+                        max-width: 24px
+                        position: absolute
+                        top: 50%
+                        transform: translateY(-50%)
+                        left: 16px
+                        pointer-events: none
+                input 
+                    width: 100%
+                    margin: 8px 0px
+                    padding: 18px 56px
+                    background: #FFFFFF
+                    border: 1px solid #E6E6E6
+                    border-radius: 10px
+                    &.invalid
+                        border: 1px solid #D91C1C
+        &-col 
+            background: #FFFFFF
+            box-shadow: 0px 12px 42px -4px rgba(24, 39, 75, 0.12)
+            border-radius: 10px
+            padding: 40px
+            position: relative
+            &.blue
+                background: #5675D3
+            .title 
+                margin-bottom: 24px
+                display: flex
+                align-items: center
+                gap: 16px
+                img 
+                    max-width: 32px
+            .button 
+                margin-top: 24px
+            .text
+                color: #64748B
+        &-for 
+            &-items 
+                display: flex
+                flex-direction: column
+                gap: 24px 
+            &-item 
+                display: flex
+                align-items: flex-start
+                gap: 16px 
+                .icon 
+                    max-width: 24px
+        &-row
+            margin-bottom: 40px
+            display: grid
+            grid-template: auto / repeat(3, 1fr)
+            gap: 32px
+            &:last-child
+                grid-template: auto / repeat(2, 1fr)
+                margin-bottom: 0 !important
