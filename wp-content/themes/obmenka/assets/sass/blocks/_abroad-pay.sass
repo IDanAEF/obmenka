@@ -17,6 +17,10 @@
                 display: flex
                 align-items: center
                 gap: 52px
+                span
+                    display: flex
+                    align-items: center
+                    gap: 12px
             &-date 
                 color: #64748B
         &-button 
@@ -64,6 +68,10 @@
             border-radius: 10px
             padding: 40px
             position: relative
+            .single-image
+                position: absolute
+                z-index: 0
+                width: 185px
             &.blue
                 background: #5675D3
             .title 
@@ -77,11 +85,27 @@
                 margin-top: 24px
             .text
                 color: #64748B
+        &-descrinfo
+            .single-image
+                bottom: 30px
+                right: 140px
+            &-title, &-descr
+                position: relative
+                z-index: 1
+        &-important
+            .abroad-pay__form-col
+                overflow: hidden
+                background: none
         &-for 
+            .single-image
+                top: -45px
+                right: 0
             &-items 
                 display: flex
                 flex-direction: column
                 gap: 24px 
+                position: relative
+                z-index: 1
             &-item 
                 display: flex
                 align-items: flex-start

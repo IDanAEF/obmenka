@@ -91,6 +91,9 @@
                 max-width: 590px 
                 margin: 28px auto
         &__form 
+            &-col 
+                .single-image
+                    width: 150px
             &-feed 
                 form 
                     padding-right: 0
@@ -239,8 +242,14 @@
                 margin-bottom: 16px
             &-col 
                 padding: 27px
+                .single-image
+                    width: 130px
                 .title 
                     margin-bottom: 13px
+            &-descrinfo
+                .single-image
+                    bottom: 2px
+                    right: 70px
             &-for 
                 &-items 
                     gap: 16px
@@ -341,7 +350,7 @@
             display: flex
         &__right 
             align-items: center
-            gap: 20px
+            gap: 25px
         &__nav 
             position: absolute
             top: 100%
@@ -394,6 +403,12 @@
             &-row
                 &:last-child, &:nth-child(2)
                     grid-template: auto / repeat(1, 1fr)
+            &-col 
+                .single-image 
+                    width: 110px
+                    bottom: -42px
+                    right: -16px
+                    top: unset
     .reviews
         &__promo 
             &-image 
@@ -664,6 +679,11 @@
                 margin: 20px auto
                 &-row 
                     gap: 15px
+                    flex-direction: column
+                    span 
+                        gap: 6px 
+                        img 
+                            width: 26px
         &__form 
             padding: 40px 0px
             &-feed 
@@ -680,6 +700,10 @@
                 grid-template: auto / repeat(1, 1fr)
             &-col 
                 padding: 17px
+                .single-image 
+                    width: 99px
+                    bottom: -20px
+                    right: -30px
                 .title 
                     margin-bottom: 9px
                     gap: 9px
@@ -782,6 +806,13 @@
                 &-row 
                     gap: 8px 
                     flex-direction: column
+        &__form 
+            &-col 
+                .single-image 
+                    width: 81px
+                    bottom: unset
+                    right: -30px
+                    top: -14px
     .reviews
         &__promo 
             &-image 
@@ -795,6 +826,9 @@
             &-text 
                 max-width: 100%
                 padding: 0px 15px
+            &-image 
+                top: 22%
+                left: 49%
         &__results
             .container 
                 grid-template: auto / repeat(1, 1fr)

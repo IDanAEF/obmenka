@@ -26,7 +26,7 @@
                 ?>
                 <div class="abroad-pay__promo-codes-row text_upper text_fw700 text_fz24">
                     <span><?=getRubs(get_field('promo_codes1'))?> RUB = 1 <?php the_field('promo_codes1') ?></span>
-                    <span><?=getRubs(get_field('promo_codes2'))?> RUB = 1 <?php the_field('promo_codes2') ?></span>
+                    <span><img src="<?=bloginfo('template_url')?>/assets/images/dollar.svg" alt=""><?=getRubs(get_field('promo_codes2'))?> RUB = 1 <?php the_field('promo_codes2') ?></span>
                 </div>
                 <div class="abroad-pay__promo-codes-date text_fz20 text_fw600">
                     курс для оплаты <br>обновлено <?=get_the_modified_date('j F, H:i', 27);?>
@@ -106,7 +106,7 @@
                 </div>
                 <div class="abroad-pay__form-important">
                     <div class="abroad-pay__form-col blue">
-                        <img src="<?=bloginfo('template_url')?>/assets/images/blue_back.png" alt="" class="img_bg">
+                        <img src="<?=bloginfo('template_url')?>/assets/images/block_pay.png" alt="" class="img_bg">
                         <h2 class="abroad-pay__form-important-title title text_white text_fz28 text_fw600">
                             <img src="<?=bloginfo('template_url')?>/assets/images/warning.svg" alt="">
                             Важно
@@ -122,6 +122,7 @@
             </div>
             <div class="abroad-pay__form-row">
                 <div class="abroad-pay__form-descrinfo abroad-pay__form-col">
+                    <img src="<?=bloginfo('template_url')?>/assets/images/p1.png" alt="" class="single-image">
                     <h2 class="abroad-pay__form-descrinfo-title title text_fz28 text_fw700">Подробности об услуге</h2>
                     <div class="abroad-pay__form-descrinfo-descr text text_fz20 text_fw600">
                         <?php the_field('form-descr_descr') ?>
@@ -131,6 +132,7 @@
                     </a>
                 </div>
                 <div class="abroad-pay__form-for abroad-pay__form-col">
+                    <img src="<?=bloginfo('template_url')?>/assets/images/p2.png" alt="" class="single-image">
                     <h2 class="abroad-pay__form-for-title title text_fz28 text_fw700">Для кого эта услуга</h2>
                     <div class="abroad-pay__form-for-items">
                         <?php

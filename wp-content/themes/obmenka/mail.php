@@ -1,5 +1,32 @@
 <?php
     if (isset($_POST['post-type']) && $_POST['post-type'] == 'abroad') {
-        echo $_POST['feedprice'];
+        $to = "e.dev@german-web.ru"; 
+        $from = "e.dev@german-web.ru";
+        $subject = "Obmenka: Оформлена заявка на покупку за рубежом"; 
+        $messText = "
+            Ссылка на товар или счет для оплаты: ".$_POST['feedlink']."
+            Название товара: ".$_POST['feedproduct']."
+            Цена товара: ".$_POST['feedprice']."
+            Детали заказа: ".$_POST['feedmess']."
+            Способ связи: ".$_POST['feedcontact']."
+        ";
+        $message = "Информационное сообщение Obmenka
+        ------------------------------------------
+        
+        Вам было отправлено сообщение через форму \"Оформление заявки на покупку за рубежом\" - 
+        
+        ".$messText."
+        
+        Сообщение сгенерировано автоматически"; 
+        
+        $boundary = "--".md5(uniqid(time())); 
+        $mailheaders = "MIME-Version: 1.0\n"; 
+        $mailheaders .="Content-Type: multipart/mixed; boundary=".$boundary."\n"; 
+        $mailheaders .= "From: ".$from."\r\n";
+        $multipart = "--".$boundary."\n"; 
+        $multipart .= "Content-Type: text/plain; charset=UTF-8\n\n"; 
+        $multipart .= $message."\n\n"; 
+        
+        $rsf = mail($to,$subject,$multipart,$mailheaders);
     }
 ?>

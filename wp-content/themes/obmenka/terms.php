@@ -19,8 +19,8 @@
             </div>
             <div class="slide-sidebar">
                 <div class="faq__contacts slide-elem">
-                    <h2 class="faq__contacts-title text_fz28 text_fw600"><?php the_field('contacts_title', 9) ?></h2>
-                    <div class="faq__contacts-descr text_fz20"><?php the_field('contacts_descr', 9) ?></div>
+                    <h2 class="faq__contacts-title text_fz28 text_fw600">Если остались вопросы</h2>
+                    <div class="faq__contacts-descr text_fz20">Будем рады на них ответить  и выслушать предложения по улучшению нашего сервиса©</div>
                     <div class="faq__contacts-block">
                         <div class="faq__contacts-block-title text_fz28 text_fw700">
                             <div class="img green">
