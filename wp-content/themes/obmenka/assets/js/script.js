@@ -1,1 +1,892 @@
-!function(){"use strict";var e=()=>{try{function e(){document.querySelector("body").classList.remove("fixed"),document.querySelector("html").classList.remove("fixed")}function t(){document.querySelector(".modal").classList.remove("active"),document.querySelectorAll(".modal__item").forEach((e=>e.classList.remove("active")))}function a(e){const t=document.querySelector(e);t.classList.add("active"),t.parentElement.classList.add("active"),document.querySelector("body").classList.add("fixed"),document.querySelector("html").classList.add("fixed")}function n(e){let t=0;for(let a=0;a<e.length;a++)t+=+e.substring(a,a+1);let a=[0,1,2,3,4,-4,-3,-2,-1,0];for(let n=e.length-1;n>=0;n-=2)t+=a[+e.substring(n,n+1)];let n=t%10;return n=10-n,10==n&&(n=0),n}function s(e){let t=+(e=e.replace(/\s/g,"")).substring(e.length-1,e.length);return n(e.substring(0,e.length-1))==+t}function r(e){let t=arguments.length>1&&void 0!==arguments[1]&&arguments[1];if(!e)return;let a=document.cookie.match(new RegExp("(?:^|; )"+e.replace(/([.$?*|{}()\[\]\\\/+^])/g,"\\$1")+"=([^;]*)"));if(a){let e=decodeURIComponent(a[1]);if(t)try{return JSON.parse(e)}catch(e){}return e}}function c(e,t){let a=arguments.length>2&&void 0!==arguments[2]?arguments[2]:{path:"/"};if(!e)return;a=a||{},a.expires instanceof Date&&(a.expires=a.expires.toUTCString()),t instanceof Object&&(t=JSON.stringify(t));let n=encodeURIComponent(e)+"="+encodeURIComponent(t);for(let e in a){n+="; "+e;let t=a[e];!0!==t&&(n+="="+t)}document.cookie=n}function i(e){c(e,null,{expires:new Date,path:"/"})}function l(e,t){let a=document.querySelector(`input[name="${t}"]`);var n,s,r;a.value=(n=e.value,s=e.getAttribute("data-rubs"),r=a.getAttribute("data-rubs"),n||(n=0),((s=+s.replace(",",".")*n)/(r=+r.replace(",","."))).toFixed(2)),e.value||(a.value="");let c=e.getAttribute("data-min")?e:a.getAttribute("data-min")?a:"",i=c?+c.getAttribute("data-min"):"";i&&+c.value<i?(c.classList.add("invalid"),c.nextElementSibling.textContent="Мин. сумма: "+i):i&&(c.classList.remove("invalid"),c.nextElementSibling.textContent="")}async function o(e){let t=await fetch(e,{method:"GET"});return await t.text()}function u(){i("order-post-id"),i("step"),i("status"),i("get-curr"),i("send-curr"),i("get-bank"),i("send-bank")}const d=document.querySelector(".change-form-cont");let g=[],m='\n                <div class="main-loading loading-anim">\n                    <img src="/wp-content/themes/obmenka/assets/images/load1.png" alt="">\n                    <img src="/wp-content/themes/obmenka/assets/images/load2.png" alt="">\n                    <img src="/wp-content/themes/obmenka/assets/images/load3.png" alt="">\n                    <img src="/wp-content/themes/obmenka/assets/images/load4.png" alt="">\n                </div>';function v(){let e=!(arguments.length>0&&void 0!==arguments[0])||arguments[0],a=arguments.length>1&&void 0!==arguments[1]&&arguments[1];t(),e&&(d.innerHTML+=m),o(d.getAttribute("data-url")+"?action=form_steps").then((e=>{d.innerHTML=e,a&&b(),2==r("step")&&"send-money"==r("status")&&y(),3==r("step")&&setTimeout((()=>{u()}),2e3)}))}function p(){d.innerHTML+=m,o(d.getAttribute("data-url")+"?action=delete_order&post_id="+r("order-post-id")).then((()=>{u(),v(!1)}))}function h(){let e=setInterval((()=>{o(d.getAttribute("data-url")+"?action=check_status&post_id="+r("order-post-id")).then((t=>{(t=JSON.parse(t))&&(c("step",3,{path:"/",expires:7200}),c("status",t,{path:"/",expires:7200}),clearInterval(e),v())}))}),1e4)}function f(){let e="?action=create_order";g.forEach((t=>{e+="&"+t.name+"="+t.value})),d.innerHTML+=m,o(d.getAttribute("data-url")+e).then((e=>{c("order-post-id",e,{path:"/",expires:7200}),c("step",2,{path:"/",expires:7200}),c("status","check-info",{path:"/",expires:7200}),v(!1,!0)}))}function y(){const e=new Date(1e3*+document.querySelector("[data-date-out]").getAttribute("data-date-out")),t=document.querySelector("#timer-minutes"),a=document.querySelector("#timer-seconds");let n=null;function s(){const s=e-new Date;s<=0&&(clearInterval(n),p());let r=s>0?Math.floor(s/1e3/60)%60:0,c=s>0?Math.floor(s/1e3)%60:0;t.textContent=r<10?"0"+r:r,a.textContent=c<10?"0"+c:c}s(),n=setInterval(s,1e3)}function b(){let e,t=9e4,a=1e3*+document.querySelector(".timer-container").getAttribute("data-time-count");const n=document.querySelector(".timer-container .progress-ring .progress-ring-circle"),s=document.querySelector("#timer-circle-seconds"),r=e=>{const a=1602*(1-e/t);n.style.strokeDashoffset=a},i=e=>{const t=(e=>{let t=Math.floor(e/1e3);return t=t<10?"0"+t:t,`${t}`})(e);s.innerText=t,r(e)};r(a),e=setInterval((()=>{a-=1e3,i(a),a<=5e3&&(n.style.stroke="#D91C1C"),a<1e3&&(c("status","send-money",{path:"/",expires:7200}),v(),clearInterval(e),a=t,i(t))}),1e3)}v(!0,!0);const L=document.querySelector(".modal__check label");L.addEventListener("click",(e=>{L.querySelector(".checkbox").classList.remove("invalid"),L.classList.toggle("active")})),2==r("step")&&"get-money"==r("status")&&h(),3==r("step")&&setTimeout((()=>{u()}),2e3),window.addEventListener("keyup",(e=>{var t;e.target.classList.contains("only-number")&&(e.target.value=e.target.value.replace(/\D/g,"")),"send-sum"==e.target.getAttribute("name")&&l(e.target,"get-sum"),"get-sum"==e.target.getAttribute("name")&&l(e.target,"send-sum"),e.target.classList.contains("card-validate")&&(s(t=e.target.value)&&t.replace(/\s/g,"").length>=13?(e.target.closest(".cards-item").querySelector(".cards-invalid").textContent="",e.target.classList.remove("invalid")):(e.target.closest(".cards-item").querySelector(".cards-invalid").textContent="Проверьте номер карты",e.target.classList.add("invalid")))})),document.body.addEventListener("click",(n=>{if(n.target.classList.contains("invalid")||n.target.closest(".invalid")){let e=n.target.classList.contains("invalid")?n.target:n.target.closest(".invalid");e.classList.contains("not-click")||e.classList.remove("invalid")}if(n.target.classList.contains("back")&&(e(),t()),n.target.classList.contains("list_items-val")){let e=n.target.closest(".list_target");e.classList.contains("target-currs")&&setTimeout((()=>{let t={"send-curr":document.querySelector('input[name="send-curr"]').value,"get-curr":document.querySelector('input[name="get-curr"]').value};if(t["send-curr"]==t["get-curr"]&&e.getAttribute("data-revert")){t[e.getAttribute("data-revert")]=e.getAttribute("data-old");let a=r("send-bank");c("send-bank",r("get-bank"),{path:"/",expires:7200}),c("get-bank",a,{path:"/",expires:7200})}else i("get-bank"),i("send-bank");c("send-curr",t["send-curr"],{path:"/",expires:7200}),c("get-curr",t["get-curr"],{path:"/",expires:7200}),v()}),500),e.classList.contains("target-banks")&&setTimeout((()=>{c("send-bank",document.querySelector('input[name="send-bank"]').value,{path:"/",expires:7200}),c("get-bank",document.querySelector('input[name="get-bank"]').value,{path:"/",expires:7200}),v()}),500)}if(n.target.classList.contains("delete-order")&&p(),n.target.classList.contains("continue")&&(document.querySelector("#privacy").checked?(e(),t(),f()):L.querySelector(".checkbox").classList.add("invalid")),n.target.classList.contains("continue-pay")&&(e(),t(),c("status","get-money",{path:"/",expires:7200}),h(),v()),n.target.classList.contains("pay-done")&&a("#pay-done"),n.target.classList.contains("window")&&a("#instruction"),n.target.classList.contains("main__form-change-button")){const e=d.querySelector('input[name="send-bank"]'),t=d.querySelector('input[name="get-bank"]'),n=d.querySelector('input[name="send-sum"]'),r=d.querySelector('input[name="get-sum"]'),c=d.querySelector('input[name="contacts"]'),i=d.querySelector('input[name="send-card"]'),l=d.querySelector('input[name="get-card"]'),o=d.querySelector('input[name="send-curr"]'),u=d.querySelector('input[name="get-curr"]');let m=!0,v=[e,t,c];[n,i,l].forEach((e=>{e.value&&!e.classList.contains("invalid")||(e.classList.add("invalid"),m=!1)})),v.forEach((e=>{e.value||(e.closest(".field").classList.add("invalid"),m=!1)})),"email"!=c.type||(s=c.value,new RegExp(/^[a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1}([a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1})*[a-zA-Z0-9]@[a-zA-Z0-9][-\.]{0,1}([a-zA-Z][-\.]{0,1})*[a-zA-Z0-9]\.[a-zA-Z0-9]{1,}([\.\-]{0,1}[a-zA-Z]){0,}[a-zA-Z0-9]{0,}$/i).test(s))||(c.closest(".field").classList.add("invalid"),m=!1),m&&(a("#how-work"),g=[],g.push({name:"send-bank",value:e.value}),g.push({name:"get-bank",value:t.value}),g.push({name:"send-sum",value:n.value}),g.push({name:"get-sum",value:r.value}),g.push({name:"contacts",value:c.value}),g.push({name:"send-card",value:i.value}),g.push({name:"get-card",value:l.value}),g.push({name:"send-curr",value:o.value}),g.push({name:"get-curr",value:u.value}))}var s}))}catch(S){console.log(S.stack)}};window.addEventListener("DOMContentLoaded",(()=>{(()=>{let e=(e,t)=>{if(t.focus(),t.setSelectionRange)t.setSelectionRange(e,e);else if(t.createTextRange){let a=t.createTextRange();a.collapse(!0),a.moveEnd("character",e),a.moveStart("character",e),a.select()}};function t(t){t.target.getAttribute("data-mask")&&("tel"==t.target.getAttribute("type")||"text"==t.target.getAttribute("type")&&t.target.classList.contains("card-validate"))&&function(t){const a=t.target;let n=a.getAttribute("data-mask"),s=0,r=n.replace(/\D/g,""),c=a.value.replace(/\D/g,"");r.length>=c.length&&(c=r),a.value=n.replace(/./g,(function(e){return/[_\d]/.test(e)&&s<c.length?c.charAt(s++):s>=c.length?"":e})),"blur"===t.type?2==a.value.length&&(a.value=""):e(a.value.length,a)}(t)}document.body.addEventListener("input",t),document.body.addEventListener("focus",t),document.body.addEventListener("blur",t)})(),function(){let e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:"";if(e){const t=document.querySelector(e);window.addEventListener("scroll",(()=>{document.documentElement.scrollTop>1650?(t.classList.add("animated","fadeIn"),t.classList.remove("fadeOut")):(t.classList.add("fadeOut"),t.classList.remove("fadeIn"))}))}let t=document.querySelectorAll('[href^="#"]'),a=.3;t.forEach((e=>{e.addEventListener("click",(function(e){e.preventDefault();let t=document.documentElement.scrollTop,n=this.hash;if(document.querySelector(n)){let s=document.querySelector(n).getBoundingClientRect().top,r=null;function c(e){null===r&&(r=e);let i=e-r,l=s<0?Math.max(t-i/a,t+s):Math.min(t+i/a,t+s);document.documentElement.scrollTo(0,l),l!=t+s?requestAnimationFrame(c):location.hash=n}requestAnimationFrame(c)}else e.target.getAttribute("data-url")&&(window.location.href=e.target.getAttribute("data-url"))}))}))}(),(()=>{try{const e=function(e){let t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:[],a=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0;e.forEach((e=>e.classList.remove("active"))),e[a].classList.add("active"),t&&(t.forEach((e=>e.classList.remove("active"))),t[a].classList.add("active"))};document.querySelectorAll(".slider-default").forEach((t=>{const a=t.querySelectorAll(".slider-item"),n=t.querySelector(".slider-points");let s=[];n&&a.forEach((e=>{const t=document.createElement("span");n.append(t),s.push(t)})),e(a,s);let r=a.length-1,c=0;setInterval((()=>{c==r?c=0:c++,e(a,s,c)}),7e3),s.forEach(((t,n)=>{t.addEventListener("click",(()=>{e(a,s,n),c=n}))}))}))}catch(e){console.log(e.stack)}})(),document.querySelector("#change-form")&&e(),document.querySelector("#abroad-form")&&(()=>{try{function e(e){const t=document.querySelector(e);t.classList.add("active"),t.parentElement.classList.add("active"),document.querySelector("body").classList.add("fixed"),document.querySelector("html").classList.add("fixed")}async function t(e,t){let a=await fetch(e,{method:"POST",body:t});return await a.text()}const a=document.querySelector("#abroad-form form"),n=a.querySelectorAll(".input input");a.addEventListener("submit",(s=>{s.preventDefault();let r=!0;if(n.forEach((e=>{e.value||(e.classList.add("invalid"),r=!1)})),r){const n=new FormData(a);n.append("post-type","abroad"),t(a.action,n).then((()=>{e("#feedsend")}))}})),document.body.addEventListener("click",(e=>{e.target.classList.contains("invalid")&&e.target.classList.remove("invalid"),e.target.classList.contains("back")&&(document.querySelector("body").classList.remove("fixed"),document.querySelector("html").classList.remove("fixed"),document.querySelector(".modal").classList.remove("active"),document.querySelectorAll(".modal__item").forEach((e=>e.classList.remove("active"))))}))}catch(s){console.log(s.stack)}})(),(()=>{try{document.body.addEventListener("click",(e=>{if(e.target.closest(".list_target")||e.target.classList.contains("list_target")?(e.target.classList.contains("list_target")?e.target:e.target.closest(".list_target")).classList.toggle("active"):document.querySelectorAll(".list_target").forEach((e=>e.classList.remove("active"))),e.target.classList.contains("list_items-val")){const t=e.target.closest(".list_target"),a=t.querySelector(".list_input");t.classList.contains("input-change")?(a.value="",a.placeholder=e.target.getAttribute("data-value").trim(),a.type=e.target.getAttribute("data-type").trim(),e.target.getAttribute("data-mask")&&a.setAttribute("data-mask",e.target.getAttribute("data-mask").trim())):(t.setAttribute("data-old",a.value),a.value=e.target.getAttribute("data-value").trim(),t.querySelector(".list_text").innerHTML=e.target.getAttribute("data-value").trim()),e.target.getAttribute("data-img")&&(t.querySelector(".list_img").src=e.target.getAttribute("data-img")),t.querySelectorAll(".list_items-val").forEach((e=>e.style.display="")),e.target.style.display="none"}e.target.classList.contains("list_open_btn")&&(e.target.classList.toggle("active"),e.target.nextElementSibling.classList.toggle("active"))}))}catch(e){console.log(e.stack)}})(),(()=>{try{const e=document.querySelector(".header__hamburger"),t=document.querySelector(".header__nav");document.body.addEventListener("click",(a=>{a.target==e&&(e.classList.toggle("active"),t.classList.toggle("active")),a.target==e||a.target.closest("header__nav")||a.target==t||(e.classList.remove("active"),t.classList.remove("active"))}))}catch(e){console.log(e.stack)}try{const e=document.querySelector(".slide-field.on-scroll"),t=e.querySelector(".slide-elem");let a;const n=()=>{a=e.getBoundingClientRect().y+window.pageYOffset,window.screen.width>=992&&window.pageYOffset>=a&&window.pageYOffset+window.screen.height<=a+e.clientHeight?t.style.cssText=`transform: translateY(${window.pageYOffset-a}px)`:window.screen.width<992&&(t.style.cssText="transform: translateY(0px)")};n(),e&&window.addEventListener("scroll",n)}catch(e){console.log(e.stack)}})()}))}();
+/******/ (function() { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./assets/es6/blocks/abroad-form.js":
+/*!******************************************!*\
+  !*** ./assets/es6/blocks/abroad-form.js ***!
+  \******************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const abroad_form = () => {
+  try {
+    function delScroll() {
+      document.querySelector('body').classList.add('fixed');
+      document.querySelector('html').classList.add('fixed');
+    }
+    function addScroll() {
+      document.querySelector('body').classList.remove('fixed');
+      document.querySelector('html').classList.remove('fixed');
+    }
+    function hideModals() {
+      document.querySelector('.modal').classList.remove('active');
+      document.querySelectorAll('.modal__item').forEach(item => item.classList.remove('active'));
+    }
+    function showModal(id) {
+      const modalItem = document.querySelector(id);
+      modalItem.classList.add('active');
+      modalItem.parentElement.classList.add('active');
+      delScroll();
+    }
+    async function postData(url, data) {
+      let res = await fetch(url, {
+        method: "POST",
+        body: data
+      });
+      return await res.text();
+    }
+    const abroadForm = document.querySelector('#abroad-form form'),
+      inputs = abroadForm.querySelectorAll('.input input');
+    abroadForm.addEventListener('submit', e => {
+      e.preventDefault();
+      let valid = true;
+      inputs.forEach(input => {
+        if (!input.value) {
+          input.classList.add('invalid');
+          valid = false;
+        }
+      });
+      if (valid) {
+        const formData = new FormData(abroadForm);
+        formData.append('post-type', 'abroad');
+        postData(abroadForm.action, formData).then(() => {
+          showModal('#feedsend');
+        });
+      }
+    });
+    document.body.addEventListener('click', e => {
+      if (e.target.classList.contains('invalid')) e.target.classList.remove('invalid');
+      if (e.target.classList.contains('back')) {
+        addScroll();
+        hideModals();
+      }
+    });
+  } catch (e) {
+    console.log(e.stack);
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (abroad_form);
+
+/***/ }),
+
+/***/ "./assets/es6/blocks/form.js":
+/*!***********************************!*\
+  !*** ./assets/es6/blocks/form.js ***!
+  \***********************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const form = () => {
+  try {
+    function delScroll() {
+      document.querySelector('body').classList.add('fixed');
+      document.querySelector('html').classList.add('fixed');
+    }
+    function addScroll() {
+      document.querySelector('body').classList.remove('fixed');
+      document.querySelector('html').classList.remove('fixed');
+    }
+    function hideModals() {
+      document.querySelector('.modal').classList.remove('active');
+      document.querySelectorAll('.modal__item').forEach(item => item.classList.remove('active'));
+    }
+    function showModal(id) {
+      const modalItem = document.querySelector(id);
+      modalItem.classList.add('active');
+      modalItem.parentElement.classList.add('active');
+      delScroll();
+    }
+    function Calculate(Luhn) {
+      let sum = 0;
+      for (let i = 0; i < Luhn.length; i++) {
+        sum += +Luhn.substring(i, i + 1);
+      }
+      let delta = [0, 1, 2, 3, 4, -4, -3, -2, -1, 0];
+      for (let i = Luhn.length - 1; i >= 0; i -= 2) {
+        let deltaIndex = +Luhn.substring(i, i + 1),
+          deltaValue = delta[deltaIndex];
+        sum += deltaValue;
+      }
+      let mod10 = sum % 10;
+      mod10 = 10 - mod10;
+      if (mod10 == 10) mod10 = 0;
+      return mod10;
+    }
+    function Validate(Luhn) {
+      Luhn = Luhn.replace(/\s/g, '');
+      let LuhnDigit = +Luhn.substring(Luhn.length - 1, Luhn.length);
+      let LuhnLess = Luhn.substring(0, Luhn.length - 1);
+      if (Calculate(LuhnLess) == +LuhnDigit) return true;
+      return false;
+    }
+    //Валидация банковских карт
+    function validateCreditCard(value) {
+      return Validate(value) && value.replace(/\s/g, '').length >= 13;
+    }
+    function getCookie(name) {
+      let json = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      if (!name) return undefined;
+      let matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\\/+^])/g, '\\$1') + "=([^;]*)"));
+      if (matches) {
+        let res = decodeURIComponent(matches[1]);
+        if (json) {
+          try {
+            return JSON.parse(res);
+          } catch (e) {}
+        }
+        return res;
+      }
+      return undefined;
+    }
+    function setCookie(name, value) {
+      let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+        path: '/'
+      };
+      if (!name) return;
+      options = options || {};
+      if (options.expires instanceof Date) options.expires = options.expires.toUTCString();
+      if (value instanceof Object) value = JSON.stringify(value);
+      let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
+      for (let optionKey in options) {
+        updatedCookie += "; " + optionKey;
+        let optionValue = options[optionKey];
+        if (optionValue !== true) updatedCookie += "=" + optionValue;
+      }
+      document.cookie = updatedCookie;
+    }
+    function deleteCookie(name) {
+      setCookie(name, null, {
+        expires: new Date(),
+        path: '/'
+      });
+    }
+    //Перевод в другую валюту на основе рубля
+    function calcCurrency(count, from, to) {
+      if (!count) count = 0;
+      from = +from.replace(',', '.') * count;
+      to = +to.replace(',', '.');
+      return (from / to).toFixed(2);
+    }
+    //Автоматическая подстановка суммы по валютам
+    function currencySum(target1, target2_name) {
+      let sum = document.querySelector(`input[name="${target2_name}"]`);
+      sum.value = calcCurrency(target1.value, target1.getAttribute('data-rubs'), sum.getAttribute('data-rubs'));
+      if (!target1.value) sum.value = '';
+      let dataInp = target1.getAttribute('data-min') ? target1 : sum.getAttribute('data-min') ? sum : '',
+        dataMin = dataInp ? +dataInp.getAttribute('data-min') : '';
+      if (dataMin && +dataInp.value < dataMin) {
+        dataInp.classList.add('invalid');
+        dataInp.nextElementSibling.textContent = "Мин. сумма: " + dataMin;
+      } else if (dataMin) {
+        dataInp.classList.remove('invalid');
+        dataInp.nextElementSibling.textContent = '';
+      }
+    }
+    async function getData(url) {
+      let res = await fetch(url, {
+        method: "GET"
+      });
+      return await res.text();
+    }
+    function clearAllCookies() {
+      deleteCookie('order-post-id');
+      deleteCookie('step');
+      deleteCookie('status');
+      deleteCookie('get-curr');
+      deleteCookie('send-curr');
+      deleteCookie('get-bank');
+      deleteCookie('send-bank');
+    }
+    const formCont = document.querySelector('.change-form-cont');
+    let dataChange = [],
+      loadingAnim = `
+                <div class="main-loading loading-anim">
+                    <img src="/wp-content/themes/obmenka/assets/images/load1.png" alt="">
+                    <img src="/wp-content/themes/obmenka/assets/images/load2.png" alt="">
+                    <img src="/wp-content/themes/obmenka/assets/images/load3.png" alt="">
+                    <img src="/wp-content/themes/obmenka/assets/images/load4.png" alt="">
+                </div>`;
+
+    //Обновить форму
+    function rebuildForm() {
+      let loader = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      let circleTimerStart = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      hideModals();
+      if (loader) formCont.innerHTML += loadingAnim;
+      getData(formCont.getAttribute('data-url') + '?action=form_steps').then(res => {
+        formCont.innerHTML = res;
+        if (circleTimerStart) circleTimer();
+        if (getCookie('step') == 2 && getCookie('status') == 'send-money') {
+          timerOut();
+        }
+        if (getCookie('step') == 3) {
+          setTimeout(() => {
+            clearAllCookies();
+          }, 2000);
+        }
+      });
+    }
+
+    //Удаление заявки
+    function deleteOrder() {
+      formCont.innerHTML += loadingAnim;
+      getData(formCont.getAttribute('data-url') + '?action=delete_order&post_id=' + getCookie('order-post-id')).then(() => {
+        clearAllCookies();
+        rebuildForm(false);
+      });
+    }
+
+    //Проверка статуса заявки (На 3-ем шаге)
+    function checkStatus() {
+      let checkStat = setInterval(() => {
+        getData(formCont.getAttribute('data-url') + '?action=check_status&post_id=' + getCookie('order-post-id')).then(res => {
+          res = JSON.parse(res);
+          if (res) {
+            setCookie('step', 3, {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            setCookie('status', res, {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            clearInterval(checkStat);
+            rebuildForm();
+          }
+        });
+      }, 10000);
+    }
+
+    //Отправление данных для создания заявки
+    function sendData() {
+      let url = '?action=create_order';
+      dataChange.forEach(dat => {
+        url += '&' + dat['name'] + '=' + dat['value'];
+      });
+      formCont.innerHTML += loadingAnim;
+      getData(formCont.getAttribute('data-url') + url).then(res => {
+        setCookie('order-post-id', res, {
+          path: '/',
+          expires: 2 * 60 * 60
+        });
+        setCookie('step', 2, {
+          path: '/',
+          expires: 2 * 60 * 60
+        });
+        setCookie('status', 'check-info', {
+          path: '/',
+          expires: 2 * 60 * 60
+        });
+        //setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
+        rebuildForm(false, true);
+      });
+    }
+    function isEmailValid(email) {
+      const emailRegexp = new RegExp(/^[a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1}([a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1})*[a-zA-Z0-9]@[a-zA-Z0-9][-\.]{0,1}([a-zA-Z][-\.]{0,1})*[a-zA-Z0-9]\.[a-zA-Z0-9]{1,}([\.\-]{0,1}[a-zA-Z]){0,}[a-zA-Z0-9]{0,}$/i);
+      return emailRegexp.test(email);
+    }
+
+    //Таймер "Окно оплаты" на 2-ом шаге
+    function timerOut() {
+      const deadline = new Date(+document.querySelector('[data-date-out]').getAttribute('data-date-out') * 1000);
+      const minutes = document.querySelector('#timer-minutes'),
+        seconds = document.querySelector('#timer-seconds');
+      let timerId = null;
+      function countdownTimer() {
+        const diff = deadline - new Date();
+        if (diff <= 0) {
+          clearInterval(timerId);
+          deleteOrder();
+        }
+        let min = diff > 0 ? Math.floor(diff / 1000 / 60) % 60 : 0,
+          sec = diff > 0 ? Math.floor(diff / 1000) % 60 : 0;
+        minutes.textContent = min < 10 ? '0' + min : min;
+        seconds.textContent = sec < 10 ? '0' + sec : sec;
+      }
+      countdownTimer();
+      timerId = setInterval(countdownTimer, 1000);
+    }
+
+    //Таймер обратного отсчёта после создания заявки
+    function circleTimer() {
+      let totalTime = 1000 * 90,
+        timerTime = 1000 * +document.querySelector('.timer-container').getAttribute('data-time-count'),
+        countDownInterval;
+      const ringSvg = document.querySelector('.timer-container .progress-ring .progress-ring-circle'),
+        circleSeconds = document.querySelector('#timer-circle-seconds');
+      const countDown = () => {
+        countDownInterval = setInterval(() => {
+          timerTime = timerTime - 1000;
+          updateTime(timerTime);
+          if (timerTime <= 5000) {
+            ringSvg.style.stroke = '#D91C1C';
+          }
+          if (timerTime < 1000) {
+            setCookie('status', 'send-money', {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            rebuildForm();
+            reset();
+          }
+        }, 1000);
+      };
+      const convertToSeconds = timeInMs => {
+        let seconds = Math.floor(timeInMs / 1000);
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        return `${seconds}`;
+      };
+      const updateProgress = timeLeft => {
+        const percentageLeft = 1 - timeLeft / totalTime;
+        const offset = 1602 * percentageLeft;
+        ringSvg.style.strokeDashoffset = offset;
+      };
+      const updateTime = timeInMs => {
+        const formattedTime = convertToSeconds(timeInMs);
+        circleSeconds.innerText = formattedTime;
+        updateProgress(timeInMs);
+      };
+      const reset = () => {
+        clearInterval(countDownInterval);
+        timerTime = totalTime;
+        updateTime(totalTime);
+      };
+      updateProgress(timerTime);
+      countDown();
+    }
+    rebuildForm(true, true);
+    const checkLabel = document.querySelector('.modal__check label');
+    checkLabel.addEventListener('click', e => {
+      checkLabel.querySelector('.checkbox').classList.remove('invalid');
+      checkLabel.classList.toggle('active');
+    });
+    if (getCookie('step') == 2 && getCookie('status') == 'get-money') {
+      checkStatus();
+    }
+    if (getCookie('step') == 3) {
+      setTimeout(() => {
+        clearAllCookies();
+      }, 2000);
+    }
+    window.addEventListener('keyup', e => {
+      if (e.target.classList.contains('only-number')) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+      }
+      if (e.target.getAttribute('name') == 'send-sum') {
+        currencySum(e.target, 'get-sum');
+      }
+      if (e.target.getAttribute('name') == 'get-sum') {
+        currencySum(e.target, 'send-sum');
+      }
+      if (e.target.classList.contains('card-validate')) {
+        if (!validateCreditCard(e.target.value)) {
+          e.target.closest('.cards-item').querySelector('.cards-invalid').textContent = 'Проверьте номер карты';
+          e.target.classList.add('invalid');
+        } else {
+          e.target.closest('.cards-item').querySelector('.cards-invalid').textContent = '';
+          e.target.classList.remove('invalid');
+        }
+      }
+    });
+    document.body.addEventListener('click', e => {
+      if (e.target.classList.contains('invalid') || e.target.closest('.invalid')) {
+        let elem = e.target.classList.contains('invalid') ? e.target : e.target.closest('.invalid');
+        if (!elem.classList.contains('not-click')) elem.classList.remove('invalid');
+      }
+      if (e.target.classList.contains('back')) {
+        addScroll();
+        hideModals();
+      }
+      if (e.target.classList.contains('list_items-val')) {
+        let listTarget = e.target.closest('.list_target');
+        if (listTarget.classList.contains('target-currs')) {
+          //Если в выпадающем листе выбрана валюта - перезаписываем куки и обновляем форму
+          setTimeout(() => {
+            let currs = {
+              'send-curr': document.querySelector('input[name="send-curr"]').value,
+              'get-curr': document.querySelector('input[name="get-curr"]').value
+            };
+            if (currs["send-curr"] == currs["get-curr"] && listTarget.getAttribute('data-revert')) {
+              currs[listTarget.getAttribute('data-revert')] = listTarget.getAttribute('data-old');
+              let bankRevert = getCookie('send-bank');
+              setCookie('send-bank', getCookie('get-bank'), {
+                path: '/',
+                expires: 2 * 60 * 60
+              });
+              setCookie('get-bank', bankRevert, {
+                path: '/',
+                expires: 2 * 60 * 60
+              });
+            } else {
+              deleteCookie('get-bank');
+              deleteCookie('send-bank');
+            }
+            setCookie('send-curr', currs["send-curr"], {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            setCookie('get-curr', currs["get-curr"], {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            rebuildForm();
+          }, 500);
+        }
+        //Если в выпадающем списке выбран банк - перезаписываем куки и обновляем форму
+        if (listTarget.classList.contains('target-banks')) {
+          setTimeout(() => {
+            setCookie('send-bank', document.querySelector('input[name="send-bank"]').value, {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            setCookie('get-bank', document.querySelector('input[name="get-bank"]').value, {
+              path: '/',
+              expires: 2 * 60 * 60
+            });
+            rebuildForm();
+          }, 500);
+        }
+      }
+      //Кнопка отмены заявки на 2-ом шаге
+      if (e.target.classList.contains('delete-order')) {
+        deleteOrder();
+      }
+      //Пользователь подтверждает введённые данные, создаётся заявка 
+      if (e.target.classList.contains('continue')) {
+        let privacy = document.querySelector('#privacy');
+        if (!privacy.checked) checkLabel.querySelector('.checkbox').classList.add('invalid');else {
+          addScroll();
+          hideModals();
+          sendData();
+        }
+      }
+      //Пользователь подтвердил, что совершил платёж
+      if (e.target.classList.contains('continue-pay')) {
+        addScroll();
+        hideModals();
+        setCookie('status', 'get-money', {
+          path: '/',
+          expires: 2 * 60 * 60
+        });
+        checkStatus();
+        rebuildForm();
+      }
+      if (e.target.classList.contains('pay-done')) {
+        showModal('#pay-done');
+      }
+      if (e.target.classList.contains('window')) {
+        showModal('#instruction');
+      }
+      //Сбор данных для заявки
+      if (e.target.classList.contains('main__form-change-button')) {
+        const sendBank = formCont.querySelector('input[name="send-bank"]'),
+          getBank = formCont.querySelector('input[name="get-bank"]'),
+          sendSum = formCont.querySelector('input[name="send-sum"]'),
+          getSum = formCont.querySelector('input[name="get-sum"]'),
+          contacts = formCont.querySelector('input[name="contacts"]'),
+          sendCard = formCont.querySelector('input[name="send-card"]'),
+          getCard = formCont.querySelector('input[name="get-card"]'),
+          sendCurr = formCont.querySelector('input[name="send-curr"]'),
+          getCurr = formCont.querySelector('input[name="get-curr"]');
+        let valid = true;
+        let inputs = [sendSum, sendCard, getCard],
+          fields = [sendBank, getBank, contacts];
+        inputs.forEach(input => {
+          if (!input.value || input.classList.contains('invalid')) {
+            input.classList.add('invalid');
+            valid = false;
+          }
+          ;
+        });
+        fields.forEach(field => {
+          if (!field.value) {
+            field.closest('.field').classList.add('invalid');
+            valid = false;
+          }
+          ;
+        });
+        if (contacts.type == 'email' && !isEmailValid(contacts.value)) {
+          contacts.closest('.field').classList.add('invalid');
+          valid = false;
+        }
+        if (valid) {
+          showModal('#how-work');
+          dataChange = [];
+          dataChange.push({
+            name: 'send-bank',
+            value: sendBank.value
+          });
+          dataChange.push({
+            name: 'get-bank',
+            value: getBank.value
+          });
+          dataChange.push({
+            name: 'send-sum',
+            value: sendSum.value
+          });
+          dataChange.push({
+            name: 'get-sum',
+            value: getSum.value
+          });
+          dataChange.push({
+            name: 'contacts',
+            value: contacts.value
+          });
+          dataChange.push({
+            name: 'send-card',
+            value: sendCard.value
+          });
+          dataChange.push({
+            name: 'get-card',
+            value: getCard.value
+          });
+          dataChange.push({
+            name: 'send-curr',
+            value: sendCurr.value
+          });
+          dataChange.push({
+            name: 'get-curr',
+            value: getCurr.value
+          });
+        }
+      }
+    });
+  } catch (e) {
+    console.log(e.stack);
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (form);
+
+/***/ }),
+
+/***/ "./assets/es6/blocks/lists.js":
+/*!************************************!*\
+  !*** ./assets/es6/blocks/lists.js ***!
+  \************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const lists = () => {
+  try {
+    document.body.addEventListener('click', e => {
+      //values list
+      if (!e.target.closest('.list_target') && !e.target.classList.contains('list_target')) {
+        document.querySelectorAll('.list_target').forEach(list => list.classList.remove('active'));
+      } else {
+        const list = e.target.classList.contains('list_target') ? e.target : e.target.closest('.list_target');
+        list.classList.toggle('active');
+      }
+      if (e.target.classList.contains('list_items-val')) {
+        const list = e.target.closest('.list_target'),
+          listInput = list.querySelector('.list_input');
+        if (list.classList.contains('input-change')) {
+          listInput.value = '';
+          listInput.placeholder = e.target.getAttribute('data-value').trim();
+          listInput.type = e.target.getAttribute('data-type').trim();
+          e.target.getAttribute('data-mask') ? listInput.setAttribute('data-mask', e.target.getAttribute('data-mask').trim()) : '';
+        } else {
+          list.setAttribute('data-old', listInput.value);
+          listInput.value = e.target.getAttribute('data-value').trim();
+          list.querySelector('.list_text').innerHTML = e.target.getAttribute('data-value').trim();
+        }
+        if (e.target.getAttribute('data-img')) list.querySelector('.list_img').src = e.target.getAttribute('data-img');
+        list.querySelectorAll('.list_items-val').forEach(it => it.style.display = '');
+        e.target.style.display = 'none';
+      }
+
+      //open list
+      if (e.target.classList.contains('list_open_btn')) {
+        e.target.classList.toggle('active');
+        e.target.nextElementSibling.classList.toggle('active');
+      }
+    });
+  } catch (e) {
+    console.log(e.stack);
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (lists);
+
+/***/ }),
+
+/***/ "./assets/es6/blocks/mask.js":
+/*!***********************************!*\
+  !*** ./assets/es6/blocks/mask.js ***!
+  \***********************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const mask = () => {
+  let setCursorPosition = (pos, elem) => {
+    elem.focus();
+    if (elem.setSelectionRange) {
+      elem.setSelectionRange(pos, pos);
+    } else if (elem.createTextRange) {
+      let range = elem.createTextRange();
+      range.collapse(true);
+      range.moveEnd('character', pos);
+      range.moveStart('character', pos);
+      range.select();
+    }
+  };
+  function createMask(event) {
+    const inp = event.target;
+    let matrix = inp.getAttribute('data-mask'),
+      i = 0,
+      def = matrix.replace(/\D/g, ''),
+      val = inp.value.replace(/\D/g, '');
+    if (def.length >= val.length) {
+      val = def;
+    }
+    inp.value = matrix.replace(/./g, function (a) {
+      return /[_\d]/.test(a) && i < val.length ? val.charAt(i++) : i >= val.length ? '' : a;
+    });
+    if (event.type === 'blur') {
+      if (inp.value.length == 2) inp.value = '';
+    } else {
+      setCursorPosition(inp.value.length, inp);
+    }
+  }
+  function initMask(e) {
+    if (e.target.getAttribute('data-mask') && (e.target.getAttribute('type') == 'tel' || e.target.getAttribute('type') == 'text' && e.target.classList.contains('card-validate'))) {
+      createMask(e);
+    }
+  }
+  document.body.addEventListener('input', initMask);
+  document.body.addEventListener('focus', initMask);
+  document.body.addEventListener('blur', initMask);
+};
+/* harmony default export */ __webpack_exports__["default"] = (mask);
+
+/***/ }),
+
+/***/ "./assets/es6/blocks/other.js":
+/*!************************************!*\
+  !*** ./assets/es6/blocks/other.js ***!
+  \************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const other = () => {
+  try {
+    //hamburger
+    const hamburger = document.querySelector('.header__hamburger'),
+      headerMenu = document.querySelector('.header__nav');
+    document.body.addEventListener('click', e => {
+      if (e.target == hamburger) {
+        hamburger.classList.toggle('active');
+        headerMenu.classList.toggle('active');
+      }
+      if (e.target != hamburger && !e.target.closest('header__nav') && e.target != headerMenu) {
+        hamburger.classList.remove('active');
+        headerMenu.classList.remove('active');
+      }
+    });
+  } catch (e) {
+    console.log(e.stack);
+  }
+  try {
+    //col scroll
+    const slideField = document.querySelector('.slide-field.on-scroll'),
+      slideElem = slideField.querySelector('.slide-elem');
+    let contPos;
+    const setTranslate = () => {
+      contPos = slideField.getBoundingClientRect().y + window.pageYOffset;
+      if (window.screen.width >= 992 && window.pageYOffset >= contPos && window.pageYOffset + window.screen.height <= contPos + slideField.clientHeight) {
+        slideElem.style.cssText = `transform: translateY(${window.pageYOffset - contPos}px)`;
+      } else if (window.screen.width < 992) {
+        slideElem.style.cssText = 'transform: translateY(0px)';
+      }
+    };
+    setTranslate();
+    slideField && window.addEventListener('scroll', setTranslate);
+  } catch (e) {
+    console.log(e.stack);
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (other);
+
+/***/ }),
+
+/***/ "./assets/es6/blocks/scrolling.js":
+/*!****************************************!*\
+  !*** ./assets/es6/blocks/scrolling.js ***!
+  \****************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const scrolling = function () {
+  let upSelector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  if (upSelector) {
+    const upElem = document.querySelector(upSelector);
+    window.addEventListener('scroll', () => {
+      if (document.documentElement.scrollTop > 1650) {
+        upElem.classList.add('animated', 'fadeIn');
+        upElem.classList.remove('fadeOut');
+      } else {
+        upElem.classList.add('fadeOut');
+        upElem.classList.remove('fadeIn');
+      }
+    });
+  }
+  let links = document.querySelectorAll('[href^="#"]'),
+    speed = 0.3;
+  links.forEach(link => {
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      let widthTop = document.documentElement.scrollTop,
+        hash = this.hash;
+      if (document.querySelector(hash)) {
+        let toBlock = document.querySelector(hash).getBoundingClientRect().top,
+          start = null;
+        requestAnimationFrame(step);
+        function step(time) {
+          if (start === null) {
+            start = time;
+          }
+          let progress = time - start,
+            r = toBlock < 0 ? Math.max(widthTop - progress / speed, widthTop + toBlock) : Math.min(widthTop + progress / speed, widthTop + toBlock);
+          document.documentElement.scrollTo(0, r);
+          if (r != widthTop + toBlock) {
+            requestAnimationFrame(step);
+          } else {
+            location.hash = hash;
+          }
+        }
+      } else if (event.target.getAttribute('data-url')) {
+        window.location.href = event.target.getAttribute('data-url');
+      }
+    });
+  });
+};
+/* harmony default export */ __webpack_exports__["default"] = (scrolling);
+
+/***/ }),
+
+/***/ "./assets/es6/blocks/slider.js":
+/*!*************************************!*\
+  !*** ./assets/es6/blocks/slider.js ***!
+  \*************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+const slider = () => {
+  try {
+    const setSlider = function (items) {
+      let points = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      let i = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+      items.forEach(item => item.classList.remove('active'));
+      items[i].classList.add('active');
+      if (points) {
+        points.forEach(point => point.classList.remove('active'));
+        points[i].classList.add('active');
+      }
+    };
+
+    //default slider
+    const sliders = document.querySelectorAll('.slider-default');
+    sliders.forEach(slider => {
+      const sliderItems = slider.querySelectorAll('.slider-item'),
+        sliderPoints = slider.querySelector('.slider-points');
+      let points = [];
+      sliderPoints && sliderItems.forEach(item => {
+        const span = document.createElement('span');
+        sliderPoints.append(span);
+        points.push(span);
+      });
+      setSlider(sliderItems, points);
+      let count = sliderItems.length - 1,
+        j = 0;
+      setInterval(() => {
+        j == count ? j = 0 : j++;
+        setSlider(sliderItems, points, j);
+      }, 7000);
+      points.forEach((point, i) => {
+        point.addEventListener('click', () => {
+          setSlider(sliderItems, points, i);
+          j = i;
+        });
+      });
+    });
+  } catch (e) {
+    console.log(e.stack);
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (slider);
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	!function() {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = function(exports) {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	}();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+!function() {
+/*!****************************!*\
+  !*** ./assets/es6/main.js ***!
+  \****************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _blocks_mask__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blocks/mask */ "./assets/es6/blocks/mask.js");
+/* harmony import */ var _blocks_scrolling__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blocks/scrolling */ "./assets/es6/blocks/scrolling.js");
+/* harmony import */ var _blocks_slider__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./blocks/slider */ "./assets/es6/blocks/slider.js");
+/* harmony import */ var _blocks_form__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./blocks/form */ "./assets/es6/blocks/form.js");
+/* harmony import */ var _blocks_abroad_form__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./blocks/abroad-form */ "./assets/es6/blocks/abroad-form.js");
+/* harmony import */ var _blocks_lists__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./blocks/lists */ "./assets/es6/blocks/lists.js");
+/* harmony import */ var _blocks_other__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./blocks/other */ "./assets/es6/blocks/other.js");
+
+
+
+
+
+
+
+'use strict';
+window.addEventListener('DOMContentLoaded', () => {
+  (0,_blocks_mask__WEBPACK_IMPORTED_MODULE_0__["default"])();
+  (0,_blocks_scrolling__WEBPACK_IMPORTED_MODULE_1__["default"])();
+  (0,_blocks_slider__WEBPACK_IMPORTED_MODULE_2__["default"])();
+  if (document.querySelector('#change-form')) (0,_blocks_form__WEBPACK_IMPORTED_MODULE_3__["default"])();
+  if (document.querySelector('#abroad-form')) (0,_blocks_abroad_form__WEBPACK_IMPORTED_MODULE_4__["default"])();
+  (0,_blocks_lists__WEBPACK_IMPORTED_MODULE_5__["default"])();
+  (0,_blocks_other__WEBPACK_IMPORTED_MODULE_6__["default"])();
+});
+}();
+/******/ })()
+;
+//# sourceMappingURL=script.js.map

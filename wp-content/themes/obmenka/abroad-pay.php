@@ -151,6 +151,53 @@
             </div>
         </div>
     </section>
+    <section class="abroad-pay__reviews main__reviews">
+        <img src="<?=bloginfo('template_url')?>/assets/images/pay_img.png" alt="" class="about__contacts-image">
+        <?php
+            $result = json_decode(file_get_contents("https://api.vk.com/method/board.getComments?access_token=34c3df9934c3df9934c3df99d237d0cac6334c334c3df9950d14100463f582d4acaecb2&group_id=219360112&topic_id=50177684&v=5.131"), true);
+        ?>
+        <div class="container">
+            <h2 class="reviews__list-title text_center text_fz44 text_fw600">Нам доверяют</h2>
+            <div class="reviews__list-all text_fz20">
+                <span>Всего отзывов:</span>
+                <div class="reviews__list-count text_fz20 text_fw500">
+                    <?=count($result['response']['items'])?>
+                    <img src="<?=bloginfo('template_url')?>/assets/images/chat_check.svg" alt="">
+                </div>
+            </div>
+            <div class="main__reviews-slider">
+                <div class="main__reviews-slider-line">
+                    <?php    
+                        foreach ($result['response']['items'] as $key => $value) {
+                            $user = json_decode(file_get_contents("https://api.vk.com/method/users.get?access_token=34c3df9934c3df9934c3df99d237d0cac6334c334c3df9950d14100463f582d4acaecb2&user_ids=".$value['from_id']."&fields=photo_100,first_name,last_name&v=5.131"), true)['response'][0];
+                            ?>
+                            <div class="main__reviews-slider-item">
+                                <div class="main__reviews-slider-item-top">
+                                    <div class="main__reviews-slider-item-image">
+                                        <?php
+                                            $userPhoto = $user['photo_100'] && strpos($user['photo_100'], 'camera_100.png') === false ? $user['photo_100'] : "/wp-content/themes/obmenka/assets/images/user_circle.png";
+                                        ?>
+                                        <img src="<?=$userPhoto?>" alt="" class="img_bg">
+                                    </div>
+                                    <div class="main__reviews-slider-item-info">
+                                        <div class="main__reviews-slider-item-name text_fz18 text_fw500"><?=$user['last_name']?> <?=$user['first_name']?></div>
+                                        <div class="main__reviews-slider-item-date text_fz12"><?=date('d.m.Y, H:i', $value['date'])?></div>
+                                    </div>
+                                </div>
+                                <div class="main__reviews-slider-item-body text_fz16">
+                                    <?=$value['text']?>
+                                </div>
+                            </div>
+                            <?php
+                        }
+                    ?>
+                </div>
+                <a href="/reviews/" class="main__reviews-slider-button button text_white text_fz16 text_fw600">
+                    Больше отзывов 
+                </a>
+            </div>
+        </div>
+    </section>
     <section class="about__results">
         <h2 class="about__results-title text_fz44 text_fw600 text_center">Наши показатели</h2>
         <div class="container">

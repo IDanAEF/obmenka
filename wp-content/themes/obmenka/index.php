@@ -55,27 +55,37 @@
             <div class="main__reviews-slider slider-default">
                 <div class="main__reviews-slider-line slider-line">
                     <?php
+                        $result = json_decode(file_get_contents("https://api.vk.com/method/board.getComments?access_token=34c3df9934c3df9934c3df99d237d0cac6334c334c3df9950d14100463f582d4acaecb2&group_id=219360112&topic_id=50177684&v=5.131"), true);
+
                         echo '<div class="main__reviews-slider-slide slider-item">';
-                        for($r = 0; $r < 16; $r++) {
+                        
+                        $r = 0;
+                        foreach ($result['response']['items'] as $key => $value) {
+                            if ($r >= 16) break;
+                            $user = json_decode(file_get_contents("https://api.vk.com/method/users.get?access_token=34c3df9934c3df9934c3df99d237d0cac6334c334c3df9950d14100463f582d4acaecb2&user_ids=".$value['from_id']."&fields=photo_100,first_name,last_name&v=5.131"), true)['response'][0];
                             ?>
                             <div class="main__reviews-slider-item">
                                 <div class="main__reviews-slider-item-top">
                                     <div class="main__reviews-slider-item-image">
-                                        <img src="<?=bloginfo('template_url')?>/assets/images/rev.png" alt="" class="img_bg">
+                                        <?php
+                                            $userPhoto = $user['photo_100'] && strpos($user['photo_100'], 'camera_100.png') === false ? $user['photo_100'] : "/wp-content/themes/obmenka/assets/images/user_circle.png";
+                                        ?>
+                                        <img src="<?=$userPhoto?>" alt="" class="img_bg">
                                     </div>
                                     <div class="main__reviews-slider-item-info">
-                                        <div class="main__reviews-slider-item-name text_fz18 text_fw500">Смирнова Елена</div>
-                                        <div class="main__reviews-slider-item-date text_fz12">08.02.2023, 10:10 </div>
+                                        <div class="main__reviews-slider-item-name text_fz18 text_fw500"><?=$user['last_name']?> <?=$user['first_name']?></div>
+                                        <div class="main__reviews-slider-item-date text_fz12"><?=date('d.m.Y, H:i', $value['date'])?></div>
                                     </div>
                                 </div>
                                 <div class="main__reviews-slider-item-body text_fz16">
-                                    Регулярно пользуюсь для покупки валюты. Отличный сервис.
-                                    <a href="" class="main__reviews-slider-item-link text_fz14 text_fw500 text_underline">Подробнее</a>
+                                    <?=$value['text']?>
+                                    <a href="https://vk.com/topic-219360112_50177684?post=<?=$value['id']?>" target="_blank" class="main__reviews-slider-item-link text_fz14 text_fw500 text_underline">Подробнее</a>
                                 </div>
                             </div>
                             <?php
                             if ($r + 1 == 16 || (($r + 1) % 4 == 0 && $r != 0)) echo '</div>';
                             if ($r + 1 != 16 && (($r + 1) % 4 == 0 && $r != 0)) echo '<div class="main__reviews-slider-slide slider-item">';
+                            $r++;
                         }
                     ?>
                 </div>
