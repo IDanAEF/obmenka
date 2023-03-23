@@ -18,7 +18,7 @@
                     ?>
                 </nav>
                 <div class="footer__social">
-                    <a target="_blank" href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram') : 'https://t.me/'.get_field('contacts_telegram'))?>">
+                    <a target="_blank" href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram', 27) : 'https://t.me/'.get_field('contacts_telegram', 27))?>">
                         <img src="<?=bloginfo('template_url')?>/assets/images/telegram.svg" alt="">
                     </a>
                     <a href="mailto:<?php the_field('contacts_email', 27) ?>">

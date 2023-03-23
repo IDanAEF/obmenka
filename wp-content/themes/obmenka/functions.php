@@ -117,7 +117,6 @@
         $sendBank = [];
         $allCurr = [];
         $allBanks = [];
-        $allReserve = [];
         while(have_rows('banks', 27)) {
             the_row();
             foreach(get_sub_field('currences', true) as $curr) {
@@ -139,20 +138,16 @@
                 ];
             }
         }
-        while(have_rows('reserve', 27)) {
-            the_row();
-            $allReserve[get_sub_field('code')] = get_sub_field('value');
-        }
         while(have_rows('currences', 27)) {
             the_row();
             $allCurr[get_sub_field('code')] = [
                 'rubs' => get_sub_field('rubs'),
-                'min' => get_sub_field('min-sum')
+                'min' => get_sub_field('min-sum'),
+                'reserve' => get_sub_field('reserve'),
+                'not-card' => get_sub_field('add')['not-card'],
+                'placeholder' => get_sub_field('add')['placeholder']
             ];
         }
-        // if ($currs['send-curr'] == $currs['get-curr']) {
-        //     $currs[$_COOKIE['revert-curr']] = $_COOKIE['old-curr'];
-        // }
         if (!isset($_COOKIE['get-bank'])) {
             $getBank = $allBanks[$currs['get-curr']][0];
         }
@@ -220,6 +215,7 @@
                         </div>
                     </div>
                 </div>
+                <?php if ($allBanks[$currs['send-curr']]) : ?>
                 <div class="field list list_target text_fz16 target-banks">
                     <input class="list_input" type="text" name="send-bank" value="<?=$sendBank['name']?>" required hidden>
                     <div class="list_info">
@@ -242,6 +238,7 @@
                         ?>
                     </div>
                 </div>
+                <?php endif; ?>
                 <input type="text" name="send-sum" data-min="<?=$allCurr[$currs['send-curr']]['min']?>" data-rubs="<?=$allCurr[$currs['send-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
                 <div class="sum-invalid text_fz14"></div>
             </div>
@@ -265,6 +262,7 @@
                         </div>
                     </div>
                 </div>
+                <?php if ($allBanks[$currs['get-curr']]) : ?>
                 <div class="field list list_target text_fz16 target-banks">
                     <input class="list_input" type="text" name="get-bank" value="<?=$getBank['name']?>" required hidden>
                     <div class="list_info">
@@ -287,13 +285,14 @@
                         ?>
                     </div>
                 </div>
+                <?php endif; ?>
                 <input type="test" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
             </div>
             <div class="main__form-change-row shadow-block">
                 <div class="title text_fz16">
                     <div class="text text_fw700">Детали обмена</div>
                     <div class="change-banks text_fw500">
-                        <?=$sendBank['name']?> на <?=$getBank['name']?>
+                        <?=$sendBank['name'] ?: strtoupper($currs['send-curr'])?> на <?=$getBank['name'] ?: strtoupper($currs['get-curr'])?>
                     </div>
                 </div>
                 <div class="courses text_fz16">
@@ -303,7 +302,7 @@
                     </div>
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/reserve.svg" alt="">
-                        Резерв: <b class="text_upper"><?=$allReserve[$currs['get-curr']]?></b>
+                        Резерв: <b class="text_upper"><?=$allCurr[$currs['get-curr']]['reserve']?></b>
                     </div>
                 </div>
                 <div class="contacts list field list_target input-change text_fz16">
@@ -331,16 +330,20 @@
                     <div class="cards-item">
                         <div class="cards-title text_fz14 text_fw600">Реквизиты отправителя:</div>
                         <div class="cards-field text_fz16">
+                            <?php if ($allBanks[$currs['send-curr']]) : ?>
                             <img src="<?=$sendBank['icon']?>" alt="" class="send-card-img">
-                            <input type="text" name="send-card" data-mask="____ ____ ____ ____" class="card-validate field not-click" placeholder="Карта <?=$sendBank['name']?>" required>
+                            <?php endif; ?>
+                            <input type="text" name="send-card" <?=$allCurr[$currs['send-curr']]['not-card'] ? 'class="field" placeholder="'.$allCurr[$currs['send-curr']]['placeholder'].'"' : 'data-mask="____ ____ ____ ____" class="card-validate field not-click" placeholder="Карта '.$sendBank['name'].'"'?> required>
                         </div>
                         <div class="cards-invalid text_fz14"></div>
                     </div>
                     <div class="cards-item">
                         <div class="cards-title text_fz14 text_fw600">Реквизиты получателя:</div>
                         <div class="cards-field text_fz16">
+                            <?php if ($allBanks[$currs['get-curr']]) : ?>
                             <img src="<?=$getBank['icon']?>" alt="" class="get-card-img">
-                            <input type="text" name="get-card" data-mask="____ ____ ____ ____" class="card-validate field not-click" placeholder="Карта <?=$getBank['name']?>" required>
+                            <?php endif; ?>
+                            <input type="text" name="get-card" <?=$allCurr[$currs['get-curr']]['not-card'] ? 'class="field" placeholder="'.$allCurr[$currs['get-curr']]['placeholder'].'"' : 'data-mask="____ ____ ____ ____" class="card-validate field not-click" placeholder="Карта '.$getBank['name'].'"'?> required>
                         </div>
                         <div class="cards-invalid text_fz14"></div>
                     </div>
@@ -396,7 +399,7 @@
                     <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
                 </div>
                 <div class="main__form-change-row">
-                    <div class="title text_fz16 text_fw600">Вы обмениваете <?php the_field('sender_bank', $post_id) ?> на <?php the_field('getter_bank', $post_id) ?>:</div>
+                    <div class="title text_fz16 text_fw600">Вы обмениваете <?=get_field('sender_bank', $post_id) ?: strtoupper(get_field('sender_carrency', $post_id)) ?> на <?=get_field('getter_bank', $post_id) ?: strtoupper(get_field('getter_carrency', $post_id)) ?>:</div>
                     <div class="field text_fz16 text_fw500 text_upper">
                         <div class="list_info">
                             <span class="list_text text_fw500"><?php the_field('sender_sum', $post_id) ?> <?php the_field('sender_carrency', $post_id) ?></span>
@@ -409,7 +412,7 @@
                     </div>
                     <div class="main__form-change-ways text_fz14">
                         <div class="main__form-change-way">
-                            <div class="number text_white text_fz12">1</div>Перейдите в приложение <?php the_field('sender_bank', $post_id) ?>
+                            <div class="number text_white text_fz12">1</div>Перейдите в приложение <?=get_field('sender_bank', $post_id) ?: '' ?>
                         </div>
                         <div class="main__form-change-way">
                             <div class="number text_white text_fz12">2</div>Выполните перевод
@@ -469,7 +472,7 @@
                         <span>Обрабатываем заявку...</span>
                     </div>
                     <div class="order-info text_fz16 text_center">
-                        Ожидайте перевода <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> на <b><?php the_field('getter_bank', $post_id) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
+                        Ожидайте перевода <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> на <b><?=get_field('getter_bank', $post_id) ?: strtoupper(get_field('getter_carrency', $post_id))?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
                     </div>
                 </div>
             </div>
@@ -497,7 +500,7 @@
                         <?php if (get_field('deny', $post_id)) : ?>
                         <?=get_field('reason', $post_id)?>
                         <?php else : ?>
-                        Перевод <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> должен поступить на <b><?php the_field('getter_bank', $post_id) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
+                        Перевод <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> должен поступить на <b><?=get_field('getter_bank', $post_id) ?: strtoupper(get_field('getter_carrency', $post_id)) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
                         <?php endif; ?>
                     </div>
                 </div>

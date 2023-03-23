@@ -114,7 +114,7 @@
                         <div class="abroad-pay__form-important-descr text_white text_fz16">
                             <?php the_field('form-descr_important') ?>
                         </div>
-                        <a href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram') : 'https://t.me/'.get_field('contacts_telegram'))?>" class="abroad-pay__form-important-button button text_white text_fw600 text_fz16">
+                        <a href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram', 27) : 'https://t.me/'.get_field('contacts_telegram', 27))?>" class="abroad-pay__form-important-button button text_white text_fw600 text_fz16">
                             Написать
                         </a>
                     </div>
@@ -127,7 +127,7 @@
                     <div class="abroad-pay__form-descrinfo-descr text text_fz20 text_fw600">
                         <?php the_field('form-descr_descr') ?>
                     </div>
-                    <a href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram') : 'https://t.me/'.get_field('contacts_telegram'))?>" class="abroad-pay__form-descrinfo-button button text_white text_fw600 text_fz16">
+                    <a href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram', 27) : 'https://t.me/'.get_field('contacts_telegram', 27))?>" class="abroad-pay__form-descrinfo-button button text_white text_fw600 text_fz16">
                         Написать
                     </a>
                 </div>
@@ -232,7 +232,7 @@
                             <img src="<?=bloginfo('template_url')?>/assets/images/mail.svg" alt="">
                             <?php the_field('clients_email', 27) ?>
                         </a>
-                        <a href="<?=(strpos(get_field('clients_telegram', 27), 'http') !== false ? get_field('clients_telegram') : 'https://t.me/'.get_field('clients_telegram'))?>" class="faq__contacts-block-link text_fz16 text_fw600">
+                        <a href="<?=(strpos(get_field('clients_telegram', 27), 'http') !== false ? get_field('clients_telegram', 27) : 'https://t.me/'.get_field('clients_telegram', 27))?>" class="faq__contacts-block-link text_fz16 text_fw600">
                             <img src="<?=bloginfo('template_url')?>/assets/images/telegram.svg" alt="">
                             Telegram
                         </a>
@@ -250,7 +250,7 @@
                             <img src="<?=bloginfo('template_url')?>/assets/images/mail.svg" alt="">
                             <?php the_field('partners_email', 27) ?>
                         </a>
-                        <a href="<?=(strpos(get_field('partners_telegram', 27), 'http') !== false ? get_field('partners_telegram') : 'https://t.me/'.get_field('partners_telegram'))?>" class="faq__contacts-block-link text_fz16 text_fw600">
+                        <a href="<?=(strpos(get_field('partners_telegram', 27), 'http') !== false ? get_field('partners_telegram', 27) : 'https://t.me/'.get_field('partners_telegram', 27))?>" class="faq__contacts-block-link text_fz16 text_fw600">
                             <img src="<?=bloginfo('template_url')?>/assets/images/telegram.svg" alt="">
                             Telegram
                         </a>

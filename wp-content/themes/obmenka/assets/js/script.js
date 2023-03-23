@@ -216,15 +216,16 @@ const form = () => {
       if (loader) formCont.innerHTML += loadingAnim;
       getData(formCont.getAttribute('data-url') + '?action=form_steps').then(res => {
         formCont.innerHTML = res;
-        if (circleTimerStart) circleTimer();
         if (getCookie('step') == 2 && getCookie('status') == 'send-money') {
           timerOut();
+          console.log();
         }
         if (getCookie('step') == 3) {
           setTimeout(() => {
             clearAllCookies();
           }, 2000);
         }
+        if (circleTimerStart) circleTimer();
       });
     }
 
@@ -278,7 +279,6 @@ const form = () => {
           path: '/',
           expires: 2 * 60 * 60
         });
-        //setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
         rebuildForm(false, true);
       });
     }
@@ -409,12 +409,11 @@ const form = () => {
             };
             if (currs["send-curr"] == currs["get-curr"] && listTarget.getAttribute('data-revert')) {
               currs[listTarget.getAttribute('data-revert')] = listTarget.getAttribute('data-old');
-              let bankRevert = getCookie('send-bank');
-              setCookie('send-bank', getCookie('get-bank'), {
+              setCookie('send-bank', document.querySelector('input[name="get-bank"]') ? document.querySelector('input[name="get-bank"]').value : '', {
                 path: '/',
                 expires: 2 * 60 * 60
               });
-              setCookie('get-bank', bankRevert, {
+              setCookie('get-bank', document.querySelector('input[name="send-bank"]') ? document.querySelector('input[name="send-bank"]').value : '', {
                 path: '/',
                 expires: 2 * 60 * 60
               });
@@ -493,18 +492,16 @@ const form = () => {
         let inputs = [sendSum, sendCard, getCard],
           fields = [sendBank, getBank, contacts];
         inputs.forEach(input => {
-          if (!input.value || input.classList.contains('invalid')) {
+          if (input && (!input.value || input.classList.contains('invalid'))) {
             input.classList.add('invalid');
             valid = false;
           }
-          ;
         });
         fields.forEach(field => {
-          if (!field.value) {
+          if (field && !field.value) {
             field.closest('.field').classList.add('invalid');
             valid = false;
           }
-          ;
         });
         if (contacts.type == 'email' && !isEmailValid(contacts.value)) {
           contacts.closest('.field').classList.add('invalid');
@@ -515,11 +512,11 @@ const form = () => {
           dataChange = [];
           dataChange.push({
             name: 'send-bank',
-            value: sendBank.value
+            value: sendBank ? sendBank.value : ''
           });
           dataChange.push({
             name: 'get-bank',
-            value: getBank.value
+            value: getBank ? getBank.value : ''
           });
           dataChange.push({
             name: 'send-sum',

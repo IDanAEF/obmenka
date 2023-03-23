@@ -67,7 +67,7 @@
                             <img src="<?=bloginfo('template_url')?>/assets/images/mail.svg" alt="">
                             <?php the_field('clients_email', 27) ?>
                         </a>
-                        <a href="<?=(strpos(get_field('clients_telegram', 27), 'http') !== false ? get_field('clients_telegram') : 'https://t.me/'.get_field('clients_telegram'))?>" class="faq__contacts-block-link text_fz16 text_fw600">
+                        <a href="<?=(strpos(get_field('clients_telegram', 27), 'http') !== false ? get_field('clients_telegram', 27) : 'https://t.me/'.get_field('clients_telegram', 27))?>" class="faq__contacts-block-link text_fz16 text_fw600">
                             <img src="<?=bloginfo('template_url')?>/assets/images/telegram.svg" alt="">
                             Telegram
                         </a>
@@ -85,7 +85,7 @@
                             <img src="<?=bloginfo('template_url')?>/assets/images/mail.svg" alt="">
                             <?php the_field('partners_email', 27) ?>
                         </a>
-                        <a href="<?=(strpos(get_field('partners_telegram', 27), 'http') !== false ? get_field('partners_telegram') : 'https://t.me/'.get_field('partners_telegram'))?>" class="faq__contacts-block-link text_fz16 text_fw600">
+                        <a href="<?=(strpos(get_field('partners_telegram', 27), 'http') !== false ? get_field('partners_telegram', 27) : 'https://t.me/'.get_field('partners_telegram', 27))?>" class="faq__contacts-block-link text_fz16 text_fw600">
                             <img src="<?=bloginfo('template_url')?>/assets/images/telegram.svg" alt="">
                             Telegram
                         </a>
