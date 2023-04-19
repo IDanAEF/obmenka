@@ -56,6 +56,7 @@
                 <div class="abroad-pay__form-feed abroad-pay__form-col">
                     <h2 class="abroad-pay__form-for-title title text_fz28 text_fw700">Оформить заявку</h2>
                     <form action="<?=bloginfo('template_url')?>/mail.php">
+                        <input type="text" name="sender_e-addr" value="<?=get_option('admin_email')?>" hidden>
                         <div class="label">
                             <span class="text_fz16 text_fw600">Ссылка на товар или счет для оплаты:</span>
                             <div class="input text_fz16 text_fw500">

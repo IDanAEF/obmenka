@@ -130,6 +130,14 @@ const form = () => {
         
             return await res.text();
         }
+        async function postData(url, data) {
+            let res = await fetch(url, {
+                method: "POST",
+                body: data
+            });
+        
+            return await res.text();
+        }
         function clearAllCookies() {
             deleteCookie('order-post-id');
             deleteCookie('step');
@@ -409,6 +417,17 @@ const form = () => {
                 addScroll();
                 hideModals();
                 setCookie('status', 'get-money', {path: '/', expires: 2*60*60});
+
+                const payDone = new FormData();
+                payDone.append('post-type', 'pers-pay');
+                payDone.append('addr', document.querySelector('[data-e-addr]').getAttribute('data-e-addr'));
+                payDone.append('order-id', getCookie('order-post-id'));
+
+                postData(document.querySelector('[data-e-addr]').getAttribute('data-mail'), payDone)
+                .then((res) => {
+                    console.log(res);
+                });
+
                 checkStatus();
                 rebuildForm();
             }
@@ -425,6 +444,7 @@ const form = () => {
                       sendSum = formCont.querySelector('input[name="send-sum"]'),
                       getSum = formCont.querySelector('input[name="get-sum"]'),
                       contacts = formCont.querySelector('input[name="contacts"]'),
+                      sendEmail = formCont.querySelector('input[name="send-email"]'),
                       sendCard = formCont.querySelector('input[name="send-card"]'),
                       getCard = formCont.querySelector('input[name="get-card"]'),
                       sendCurr = formCont.querySelector('input[name="send-curr"]'),
@@ -432,8 +452,8 @@ const form = () => {
 
                 let valid = true;
 
-                let inputs = [sendSum, sendCard, getCard],
-                    fields = [sendBank, getBank, contacts];
+                let inputs = [sendSum, sendCard, getCard, sendEmail],
+                    fields = [sendBank, getBank];
 
                 inputs.forEach(input => {
                     if (input && (!input.value || input.classList.contains('invalid'))) {
@@ -448,8 +468,8 @@ const form = () => {
                     }
                 });
 
-                if (contacts.type == 'email' && !isEmailValid(contacts.value)) {
-                    contacts.closest('.field').classList.add('invalid');
+                if (!isEmailValid(sendEmail.value)) {
+                    sendEmail.classList.add('invalid');
                     valid = false;
                 }
 
@@ -460,8 +480,10 @@ const form = () => {
                     dataChange.push({name: 'send-bank', value: sendBank ? sendBank.value : ''});
                     dataChange.push({name: 'get-bank', value: getBank ? getBank.value : ''});
                     dataChange.push({name: 'send-sum', value: sendSum.value});
+                    dataChange.push({name: 'send-email', value: sendEmail.value});
                     dataChange.push({name: 'get-sum', value: getSum.value});
                     dataChange.push({name: 'contacts', value: contacts.value});
+                    dataChange.push({name: 'conttype', value: contacts.type});
                     dataChange.push({name: 'send-card', value: sendCard.value});
                     dataChange.push({name: 'get-card', value: getCard.value});
                     dataChange.push({name: 'send-curr', value: sendCurr.value});

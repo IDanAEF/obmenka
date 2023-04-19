@@ -6,7 +6,7 @@
         wp_enqueue_style( 'obmenka_main_style', get_template_directory_uri() . '/assets/css/style.min.css' );
         wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css' );
         
-        wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), null, true );
+        wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), '16', true );
         wp_enqueue_script( 'obmenka_custom_scrit', get_template_directory_uri() . '/custom.js', array(), null, true );
     }
 
@@ -62,6 +62,7 @@
     add_action('wp_ajax_nopriv_check_status', 'check_status');
 
     function create_order(){
+        date_default_timezone_set('Europe/Moscow');
         function randomString($length = 12) {
             $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $charactersLength = strlen($characters);
@@ -72,10 +73,16 @@
             return $randomString;
         }
 
+        // function getType() {
+        //     if ($_GET['conttype'] == 'email') return 'E-mail';
+        //     if ($_GET['conttype'] == 'tel') return 'WhatsApp';
+        //     if ($_GET['conttype'] == 'text') return 'Telegram';
+        // }
+
         $id = randomString();
 
         $post_data = [
-            'post_title'    => $id.' - '.$_GET['contacts'],
+            'post_title'    => $id.' - '.$_GET['send-email'],
             'post_name'     => $id,
             'post_status'   => 'publish',
             'post_type'     => 'post',
@@ -84,6 +91,7 @@
             'post_category' => [3],
             'meta_input'    => [
                 'id-code' => $id,
+                'send-email' => $_GET['send-email'],
                 'contacts' => $_GET['contacts'],
                 'sender_card' => $_GET['send-card'], 
                 'sender_bank' => $_GET['send-bank'],
@@ -98,8 +106,112 @@
         
         $post_id = wp_insert_post($post_data);
 
-        echo $post_id;
+        $allCurr = [];
+            
+        while(have_rows('currences', 27)) {
+            the_row();
+            $allCurr[get_sub_field('code')] = [
+                'rubs' => get_sub_field('rubs'),
+                'min' => get_sub_field('min-sum'),
+                'reserve' => get_sub_field('reserve'),
+                'not-card' => get_sub_field('add')['not-card'],
+                'placeholder' => get_sub_field('add')['placeholder']
+            ];
+        }
 
+        $to = get_option('admin_email'); 
+        $from = get_option('admin_email');
+        $subject = "Obmenka: Новая заявка от ".$_GET['send-email']; 
+        $messText = "
+            ID заявки: ".$id."
+            Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
+
+            E-mail: ".$_GET['send-email']."
+            Контакты: ".$_GET['contacts']."
+
+            Курс обмена: 1 ".mb_strtoupper($_GET['send-curr'])." = ".round($allCurr[$_GET['send-curr']]['rubs']/$allCurr[$_GET['get-curr']]['rubs'], 2)." ".mb_strtoupper($_GET['get-curr'])."
+
+            Данные отправителя
+            Реквизиты: ".$_GET['send-card']."
+            Банк: ".$_GET['send-bank']."
+            Сумма: ".$_GET['send-sum']."
+            Валюта: ".$_GET['send-curr']."
+
+            Данные получателя
+            Реквизиты: ".$_GET['get-card']."
+            Банк: ".$_GET['get-bank']."
+            Сумма: ".$_GET['get-sum']."
+            Валюта: ".$_GET['get-curr']."
+
+            Дата формирования: ".date('d-m-Y H:i:s')."
+        ";
+        $message = "Информационное сообщение Obmenka
+        ------------------------------------------
+        
+        Вы получили новую заявку - 
+        
+        ".$messText."
+        
+        Сообщение сгенерировано автоматически"; 
+        
+        $boundary = "--".md5(uniqid(time())); 
+        $mailheaders = "MIME-Version: 1.0\n"; 
+        $mailheaders .="Content-Type: multipart/mixed; boundary=".$boundary."\n"; 
+        $mailheaders .= "From: ".$from."\r\n";
+        $multipart = "--".$boundary."\n"; 
+        $multipart .= "Content-Type: text/plain; charset=UTF-8\n\n"; 
+        $multipart .= $message."\n\n"; 
+        
+        $rsf = mail($to,$subject,$multipart,$mailheaders);
+
+        if ($_GET['send-email']) {
+
+            $to = $_GET['send-email']; 
+            $from = 'info@topobmenka.com';
+            $subject = "Obmenka: Вами была успешно создана заявка на обмен."; 
+            $messText = "
+                ID заявки: ".$id."
+                
+                E-mail: ".$_GET['send-email']."
+                Контакты: ".$_GET['contacts']."
+
+                Курс: ".round($allCurr[$_GET['send-curr']]['rubs']/$allCurr[$_GET['get-curr']]['rubs'], 2)."
+
+                Данные отправителя
+                Реквизиты: ".$_GET['send-card']."
+                Банк: ".$_GET['send-bank']."
+                Сумма: ".$_GET['send-sum']."
+                Валюта: ".$_GET['send-curr']."
+
+                Данные получателя
+                Реквизиты: ".$_GET['get-card']."
+                Банк: ".$_GET['get-bank']."
+                Сумма: ".$_GET['get-sum']."
+                Валюта: ".$_GET['get-curr']."
+
+                Дата формирования: ".date('d-m-Y H:i:s')."
+            ";
+            $message = "Информационное сообщение Obmenka
+            ------------------------------------------
+            
+            Детали вашей заявки - 
+            
+            ".$messText."
+            
+            Сообщение сгенерировано автоматически"; 
+            
+            $boundary = "--".md5(uniqid(time())); 
+            $mailheaders = "MIME-Version: 1.0\n"; 
+            $mailheaders .="Content-Type: multipart/mixed; boundary=".$boundary."\n"; 
+            $mailheaders .= "From: ".$from."\r\n";
+            $multipart = "--".$boundary."\n"; 
+            $multipart .= "Content-Type: text/plain; charset=UTF-8\n\n"; 
+            $multipart .= $message."\n\n"; 
+            
+            $rsf = mail($to,$subject,$multipart,$mailheaders);
+        }
+
+        echo $post_id;
         die();
     }
     
@@ -286,7 +398,7 @@
                     </div>
                 </div>
                 <?php endif; ?>
-                <input type="test" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
+                <input type="text" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
             </div>
             <div class="main__form-change-row shadow-block">
                 <div class="title text_fz16">
@@ -305,17 +417,18 @@
                         Резерв: <b class="text_upper"><?=$allCurr[$currs['get-curr']]['reserve']?></b>
                     </div>
                 </div>
+                <input type="email" name="send-email" class="field text_fz16" placeholder="Email для связи" required>
                 <div class="contacts list field list_target input-change text_fz16">
                     <div class="cards-field input-field text_fz16">
-                        <img src="<?=bloginfo('template_url')?>/assets/images/mail_color.svg" alt="" class="send-card-img list_img">
-                        <input class="list_input" type="email" name="contacts" placeholder="Email для связи" required>
+                        <img src="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" alt="" class="send-card-img list_img">
+                        <input class="list_input" type="tel" name="contacts" placeholder="Whats App">
                     </div>
                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                     <div class="list_items">
-                        <div class="list_items-val long" data-img="<?=bloginfo('template_url')?>/assets/images/mail_color.svg" data-value="Email для связи" data-type="email" style="display: none;">
+                        <!-- <div class="list_items-val long" data-img="<?=bloginfo('template_url')?>/assets/images/mail_color.svg" data-value="Email для связи" data-type="email" style="display: none;">
                             <img src="<?=bloginfo('template_url')?>/assets/images/mail_color.svg" alt="">
                             Email для связи
-                        </div>
+                        </div> -->
                         <div class="list_items-val long" data-mask="+_ (___) ___-__-__" data-img="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" data-value="Whats App" data-type="tel">
                             <img src="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" alt="">
                             Whats App
@@ -393,7 +506,7 @@
             <?php
                 $post_id = $_COOKIE['order-post-id'];    
             ?>
-            <div class="main__form-change-order" data-date-out="<?=get_post_timestamp($post_id) + 1170?>">
+            <div class="main__form-change-order" data-mail="<?=bloginfo('template_url')?>/mail.php" data-e-addr="<?=get_option('admin_email')?>" data-date-out="<?=get_post_timestamp($post_id) + 1170?>">
                 <div class="main__form-change-head">
                     <h2 class="text_fz18 text_fw700">Ваша заявка создана</h2>
                     <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>
@@ -422,7 +535,14 @@
                         <div class="cards-title text_fz14 text_fw500">Реквизиты:</div>
                         <div class="field text_fz16 text_fw500 text_upper">
                             <div class="list_info">
-                                <span class="list_text text_fw500"><?=preg_replace('/\d{4}/', "$0 ",get_field('requisites_default', 27)) ?></span>
+                                <?php
+                                    $requis = get_field('requisites_default', 27);
+                                    foreach(get_field('requisites_by-code', 27) as $oneCard) {
+                                        if ($oneCard['code'] == get_field('sender_carrency', $post_id)) 
+                                            $requis = $oneCard['card'];
+                                    }
+                                ?>
+                                <span class="list_text text_fw500"><?=preg_replace('/\d{4}/', "$0 ",$requis) ?></span>
                             </div>
                         </div>
                     </div>

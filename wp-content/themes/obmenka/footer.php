@@ -29,6 +29,9 @@
         </div>
         <div class="footer__bott">
             © <?=date('Y')?>, <?php the_field('copyright', 27) ?>
+            <div class="company">
+                Разработка <a class="text_fw600" href="https://german-web.org/" target="_blank">German Web</a>
+            </div>
         </div>
     </footer>
     <div class="modal">
@@ -65,12 +68,16 @@
         <div class="modal__item" id="pay-done">
             <div class="modal__title text_fz16 text_fw600">Подтверждение оплаты</div>
             <div class="modal__descr text_fz16">
-            После подтверждения оплаты, мы проверим перевод
-            в течении 15 минут и переведем сумму в другой валюте
-            на указанные реквизиты.
-            <br>
             Пожалуйста, нажмите <b>«Я оплатил»</b> только если вы
             действительно сделали перевод.
+            <br><br>
+            После оплаты просим предоставить чек на почту <a href="mailto:info@topobmenka.com" class="text_underline text_fw600">info@topobmenka.com</a>, либо телеграмм <a href="https://t.me/TopObmenka" class="text_underline text_fw600" target="_blank">https://t.me/TopObmenka</a>.
+            <br>
+            Мы проверим перевод
+            в течении 15 минут и переведем сумму в другой валюте
+            на указанные реквизиты.
+            <br><br>
+            Благодарим за использование нашего сервиса
             </div>
             <div class="modal__buttons mt">
                 <div class="button back button_red text_fz16 text_fw500 text_center">
