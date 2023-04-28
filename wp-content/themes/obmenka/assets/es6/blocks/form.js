@@ -74,42 +74,33 @@ const form = () => {
           
             return undefined;
         }
-        function setCookie(name, value, options = {path: '/'}) {
-            if (!name) return;
-            
-            options = options || {};
-            
-            if (options.expires instanceof Date) options.expires = options.expires.toUTCString();
-            
-            if (value instanceof Object) value = JSON.stringify(value);
-
-            let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
-            for (let optionKey in options) {
-                updatedCookie += "; " + optionKey;
-                let optionValue = options[optionKey];
-
-                if (optionValue !== true) updatedCookie += "=" + optionValue;
+        function setCookie(name, value, hours) {
+            var expires;
+            if (hours || hours === 0) {
+                var date = new Date();
+                date.setTime(date.getTime() + (hours * 60 * 60 * 1000));
+                expires = "; expires=" + date.toGMTString();
             }
-            document.cookie = updatedCookie;
+            else {
+                expires = "";
+            }
+            document.cookie = name + "=" + value + expires + "; path=/";
         }
         function deleteCookie(name) {
-            setCookie(name, null, {
-                expires: new Date(),
-                path: '/'
-            });
+            setCookie(name, null, 0);
         }
         //Перевод в другую валюту на основе рубля
-        function calcCurrency(count, from, to) {
-            if (!count) count = 0;
-            from = +from.replace(',', '.')*count;
-            to = +to.replace(',', '.');
-            return (from/to).toFixed(2);
-        }
+        // function calcCurrency(count, from, to) {
+        //     if (!count) count = 0;
+        //     from = +from.replace(',', '.')*count;
+        //     to = +to.replace(',', '.');
+        //     return (from/to).toFixed(2);
+        // }
         //Автоматическая подстановка суммы по валютам
         function currencySum(target1, target2_name) {
             let sum = document.querySelector(`input[name="${target2_name}"]`);
-                sum.value = calcCurrency(target1.value, target1.getAttribute('data-rubs'), sum.getAttribute('data-rubs'));
-
+                sum.value = (target1.getAttribute('data-multi') ? target1.value * +target1.getAttribute('data-multi').replace(',', '.') : target1.value / +target1.getAttribute('data-decr').replace(',', '.')).toFixed(2);
+            
             if (!target1.value) sum.value = '';
 
             let dataInp = target1.getAttribute('data-min') ? target1 : sum.getAttribute('data-min') ? sum : '',
@@ -168,7 +159,6 @@ const form = () => {
                 formCont.innerHTML = res;
                 if (getCookie('step') == 2 && getCookie('status') == 'send-money') {
                     timerOut();
-                    console.log();
                 }
                 if (getCookie('step') == 3) {
                     setTimeout(() => {
@@ -196,8 +186,8 @@ const form = () => {
                 .then((res) => {
                     res = JSON.parse(res);
                     if (res) {
-                        setCookie('step', 3, {path: '/', expires: 2*60*60});
-                        setCookie('status', res, {path: '/', expires: 2*60*60});
+                        setCookie('step', 3, 4);
+                        setCookie('status', res, 4);
                         clearInterval(checkStat);
                         rebuildForm();
                     }
@@ -216,9 +206,9 @@ const form = () => {
             formCont.innerHTML += loadingAnim;
             getData(formCont.getAttribute('data-url')+url)
             .then((res) => {
-                setCookie('order-post-id', res, {path: '/', expires: 2*60*60});
-                setCookie('step', 2, {path: '/', expires: 2*60*60});
-                setCookie('status', 'check-info', {path: '/', expires: 2*60*60});
+                setCookie('order-post-id', res, 4);
+                setCookie('step', 2, 4);
+                setCookie('status', 'check-info', 4);
                 rebuildForm(false, true);
             });
         }
@@ -277,7 +267,7 @@ const form = () => {
                     }
                     
                     if (timerTime < 1000) {
-                        setCookie('status', 'send-money', {path: '/', expires: 2*60*60});
+                        setCookie('status', 'send-money', 4);
                         rebuildForm();
                         reset();
                     }
@@ -377,23 +367,23 @@ const form = () => {
                         if (currs["send-curr"] == currs["get-curr"] && listTarget.getAttribute('data-revert')) {
                             currs[listTarget.getAttribute('data-revert')] = listTarget.getAttribute('data-old');
 
-                            setCookie('send-bank', document.querySelector('input[name="get-bank"]') ? document.querySelector('input[name="get-bank"]').value : '', {path: '/', expires: 2*60*60});
-                            setCookie('get-bank', document.querySelector('input[name="send-bank"]') ? document.querySelector('input[name="send-bank"]').value : '', {path: '/', expires: 2*60*60});
+                            setCookie('send-bank', document.querySelector('input[name="get-bank"]') ? document.querySelector('input[name="get-bank"]').value : '', 4);
+                            setCookie('get-bank', document.querySelector('input[name="send-bank"]') ? document.querySelector('input[name="send-bank"]').value : '', 4);
                         } else {
                             deleteCookie('get-bank');
                             deleteCookie('send-bank');
                         }
 
-                        setCookie('send-curr', currs["send-curr"], {path: '/', expires: 2*60*60});
-                        setCookie('get-curr', currs["get-curr"], {path: '/', expires: 2*60*60});
+                        setCookie('send-curr', currs["send-curr"], 4);
+                        setCookie('get-curr', currs["get-curr"], 4);
                         rebuildForm();
                     }, 500);
                 }
                 //Если в выпадающем списке выбран банк - перезаписываем куки и обновляем форму
                 if (listTarget.classList.contains('target-banks')) {
                     setTimeout(() => {
-                        setCookie('send-bank', document.querySelector('input[name="send-bank"]').value, {path: '/', expires: 2*60*60});
-                        setCookie('get-bank', document.querySelector('input[name="get-bank"]').value, {path: '/', expires: 2*60*60});
+                        setCookie('send-bank', document.querySelector('input[name="send-bank"]').value, 4);
+                        setCookie('get-bank', document.querySelector('input[name="get-bank"]').value, 4);
                         rebuildForm();
                     }, 500);
                 }
@@ -416,7 +406,7 @@ const form = () => {
             if (e.target.classList.contains('continue-pay')) {
                 addScroll();
                 hideModals();
-                setCookie('status', 'get-money', {path: '/', expires: 2*60*60});
+                setCookie('status', 'get-money', 4);
 
                 const payDone = new FormData();
                 payDone.append('post-type', 'pers-pay');

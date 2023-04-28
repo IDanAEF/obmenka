@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="<?php the_field('favicon', 27) ?>" type="image/x-icon">
+    <link rel="icon" href="<?php the_field('favicon', 27) ?>" type="image/x-icon">
+
     <title><?php the_title(); ?></title>
     <?php
         wp_head();
@@ -29,7 +33,7 @@
 				?>
             </nav>
             <div class="header__right">
-                <a href="" class="header__button button text_white">
+                <a href="<?=(strpos(get_field('contacts_telegram', 27), 'http') !== false ? get_field('contacts_telegram', 27) : 'https://t.me/'.get_field('contacts_telegram', 27))?>" class="header__button button text_white">
                     Поддержка
                 </a>
                 <div class="header__hamburger">

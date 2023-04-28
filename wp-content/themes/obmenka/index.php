@@ -29,21 +29,25 @@
                     while(have_rows('ways_blocks')) {
                         the_row();
                         $color = get_sub_field('color');
+                        if (get_sub_field('link')) echo '<a href="'.get_sub_field('link').'" '.(get_sub_field('currency') ? 'data-currency="'.get_sub_field('currency').'"' : '').' class="main__ways-item text_'.$color.'">';
+                        else echo '<div class="main__ways-item text_'.$color.'">';
                         ?>
-                        <a href="#change-form" data-currency="usdt" class="main__ways-item text_<?=$color?>">
                             <img src="<?php the_sub_field('back') ?>" alt="" class="main__ways-item-back img_bg">
                             <div class="main__ways-item-text">
                                 <h3 class="main__ways-item-title text_fz38 text_fw700"><?php the_sub_field('name') ?></h3>
                                 <div class="main__ways-item-descr text_fz20 text_fw500"><?php the_sub_field('descr') ?></div>
                             </div>
+                            <?php if(get_sub_field('link')) : ?>
                             <div class="main__ways-item-link button button_arrow text_fz14 text_upper">
                                 Подробнее
                                 <span>
                                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow.svg" alt="">
                                 </span>
                             </div>
-                        </a>
+                            <?php endif; ?>
                         <?php
+                        if (get_sub_field('link')) echo '</a>';
+                        else echo '</div>';
                     }
                 ?>
             </div>

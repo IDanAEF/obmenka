@@ -4,9 +4,9 @@
 
     function obmenkaAddScripts() {
         wp_enqueue_style( 'obmenka_main_style', get_template_directory_uri() . '/assets/css/style.min.css' );
-        wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css' );
+        wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css', false, '4' );
         
-        wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), '16', true );
+        wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), '17', true );
         wp_enqueue_script( 'obmenka_custom_scrit', get_template_directory_uri() . '/custom.js', array(), null, true );
     }
 
@@ -63,6 +63,7 @@
 
     function create_order(){
         date_default_timezone_set('Europe/Moscow');
+
         function randomString($length = 12) {
             $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $charactersLength = strlen($characters);
@@ -73,16 +74,16 @@
             return $randomString;
         }
 
-        // function getType() {
-        //     if ($_GET['conttype'] == 'email') return 'E-mail';
-        //     if ($_GET['conttype'] == 'tel') return 'WhatsApp';
-        //     if ($_GET['conttype'] == 'text') return 'Telegram';
-        // }
+        $contType = 'E-mail';
+        if ($_GET['contacts'] && $_GET['conttype'] == 'tel') $contType = 'WhatsApp';
+        if ($_GET['contacts'] && $_GET['conttype'] == 'text') $contType = 'Telegram';
 
         $id = randomString();
 
+        $contactText = $_GET['contacts'] ?: $_GET['send-email'];
+
         $post_data = [
-            'post_title'    => $id.' - '.$_GET['send-email'],
+            'post_title'    => $id.' - '.$contactText.' - '.$contType,
             'post_name'     => $id,
             'post_status'   => 'publish',
             'post_type'     => 'post',
@@ -111,12 +112,20 @@
         while(have_rows('currences', 27)) {
             the_row();
             $allCurr[get_sub_field('code')] = [
-                'rubs' => get_sub_field('rubs'),
                 'min' => get_sub_field('min-sum'),
                 'reserve' => get_sub_field('reserve'),
                 'not-card' => get_sub_field('add')['not-card'],
                 'placeholder' => get_sub_field('add')['placeholder']
             ];
+        }
+
+        $sendVal = 0;
+        $getVal = 0;
+        foreach(get_field('courses', 27) as $course) {
+            if ($course['send']['code'] == $_GET['send-curr'] && $course['get']['code'] == $_GET['get-curr']) {
+                $sendVal = $course['send']['price'];
+                $getVal = $course['get']['price'];
+            }
         }
 
         $to = get_option('admin_email'); 
@@ -127,23 +136,23 @@
             Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
 
             E-mail: ".$_GET['send-email']."
-            Контакты: ".$_GET['contacts']."
+            ".($_GET['contacts'] ? 'Контакты: '.$_GET['contacts'].' - '.$contType : '')."
 
-            Курс обмена: 1 ".mb_strtoupper($_GET['send-curr'])." = ".round($allCurr[$_GET['send-curr']]['rubs']/$allCurr[$_GET['get-curr']]['rubs'], 2)." ".mb_strtoupper($_GET['get-curr'])."
+            Курс обмена: ".$sendVal." ".mb_strtoupper($_GET['send-curr'])." = ".$getVal." ".mb_strtoupper($_GET['get-curr'])."
 
             Данные отправителя
             Реквизиты: ".$_GET['send-card']."
             Банк: ".$_GET['send-bank']."
             Сумма: ".$_GET['send-sum']."
-            Валюта: ".$_GET['send-curr']."
+            Валюта: ".mb_strtoupper($_GET['send-curr'])."
 
             Данные получателя
             Реквизиты: ".$_GET['get-card']."
             Банк: ".$_GET['get-bank']."
             Сумма: ".$_GET['get-sum']."
-            Валюта: ".$_GET['get-curr']."
+            Валюта: ".mb_strtoupper($_GET['get-curr'])."
 
-            Дата формирования: ".date('d-m-Y H:i:s')."
+            Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
         ";
         $message = "Информационное сообщение Obmenka
         ------------------------------------------
@@ -154,18 +163,14 @@
         
         Сообщение сгенерировано автоматически"; 
         
-        $boundary = "--".md5(uniqid(time())); 
-        $mailheaders = "MIME-Version: 1.0\n"; 
-        $mailheaders .="Content-Type: multipart/mixed; boundary=".$boundary."\n"; 
+        $mailheaders = "MIME-Version: 1.0\r\n"; 
+        $mailheaders .="Content-Type: text/plain; charset=UTF-8\r\n"; 
         $mailheaders .= "From: ".$from."\r\n";
-        $multipart = "--".$boundary."\n"; 
-        $multipart .= "Content-Type: text/plain; charset=UTF-8\n\n"; 
-        $multipart .= $message."\n\n"; 
+        $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
         
-        $rsf = mail($to,$subject,$multipart,$mailheaders);
+        $rsf = mail($to,$subject,$message,$mailheaders);
 
         if ($_GET['send-email']) {
-
             $to = $_GET['send-email']; 
             $from = 'info@topobmenka.com';
             $subject = "Obmenka: Вами была успешно создана заявка на обмен."; 
@@ -173,23 +178,23 @@
                 ID заявки: ".$id."
                 
                 E-mail: ".$_GET['send-email']."
-                Контакты: ".$_GET['contacts']."
+                ".($_GET['contacts'] ? 'Контакты: '.$_GET['contacts'].' - '.$contType : '')."
 
-                Курс: ".round($allCurr[$_GET['send-curr']]['rubs']/$allCurr[$_GET['get-curr']]['rubs'], 2)."
+                Курс обмена: ".$sendVal." ".mb_strtoupper($_GET['send-curr'])." = ".$getVal." ".mb_strtoupper($_GET['get-curr'])."
 
                 Данные отправителя
                 Реквизиты: ".$_GET['send-card']."
                 Банк: ".$_GET['send-bank']."
                 Сумма: ".$_GET['send-sum']."
-                Валюта: ".$_GET['send-curr']."
+                Валюта: ".mb_strtoupper($_GET['send-curr'])."
 
                 Данные получателя
                 Реквизиты: ".$_GET['get-card']."
                 Банк: ".$_GET['get-bank']."
                 Сумма: ".$_GET['get-sum']."
-                Валюта: ".$_GET['get-curr']."
+                Валюта: ".mb_strtoupper($_GET['get-curr'])."
 
-                Дата формирования: ".date('d-m-Y H:i:s')."
+                Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
             ";
             $message = "Информационное сообщение Obmenka
             ------------------------------------------
@@ -197,18 +202,20 @@
             Детали вашей заявки - 
             
             ".$messText."
+
+            Поддержка:
+            info@topobmenka.com
+            https://t.me/TopObmenka
             
             Сообщение сгенерировано автоматически"; 
+             
+            // $mailheaders = "MIME-Version: 1.0\r\n"; 
+            // $mailheaders .="Content-Type: text/plain; charset=UTF-8\r\n"; 
+            // $mailheaders .= "From: ".$from."\r\n";
+            $mailheaders = "Reply-To: ".get_option('admin_email')."\r\n";
+            //$mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
             
-            $boundary = "--".md5(uniqid(time())); 
-            $mailheaders = "MIME-Version: 1.0\n"; 
-            $mailheaders .="Content-Type: multipart/mixed; boundary=".$boundary."\n"; 
-            $mailheaders .= "From: ".$from."\r\n";
-            $multipart = "--".$boundary."\n"; 
-            $multipart .= "Content-Type: text/plain; charset=UTF-8\n\n"; 
-            $multipart .= $message."\n\n"; 
-            
-            $rsf = mail($to,$subject,$multipart,$mailheaders);
+            $rsf = wp_mail($to,$subject,$message,$mailheaders);
         }
 
         echo $post_id;
@@ -253,18 +260,27 @@
         while(have_rows('currences', 27)) {
             the_row();
             $allCurr[get_sub_field('code')] = [
-                'rubs' => get_sub_field('rubs'),
                 'min' => get_sub_field('min-sum'),
                 'reserve' => get_sub_field('reserve'),
                 'not-card' => get_sub_field('add')['not-card'],
                 'placeholder' => get_sub_field('add')['placeholder']
             ];
         }
+        $courses = get_field('courses', 27);
+
         if (!isset($_COOKIE['get-bank'])) {
             $getBank = $allBanks[$currs['get-curr']][0];
         }
         if (!isset($_COOKIE['send-bank'])) {
             $sendBank = $allBanks[$currs['send-curr']][0];
+        }
+        $sendPrice = 0;
+        $getPrice = 0;
+        foreach($courses as $course) {
+            if ($course['send']['code'] == $currs['send-curr'] && $course['get']['code'] == $currs['get-curr']) {
+                $sendPrice = $course['send']['price'];
+                $getPrice = $course['get']['price'];
+            }
         }
         ?>
         <h2 class="main__form-title text_fz44 text_fw600 text_center">Oбмен валют</h2>
@@ -351,7 +367,7 @@
                     </div>
                 </div>
                 <?php endif; ?>
-                <input type="text" name="send-sum" data-min="<?=$allCurr[$currs['send-curr']]['min']?>" data-rubs="<?=$allCurr[$currs['send-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
+                <input type="text" name="send-sum" data-min="<?=$allCurr[$currs['send-curr']]['min']?>" <?=$sendPrice == 1 ? 'data-multi="'.$getPrice.'"' : 'data-decr="'.$sendPrice.'"'?> class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
                 <div class="sum-invalid text_fz14"></div>
             </div>
             <div class="main__form-change-col shadow-block">
@@ -398,7 +414,7 @@
                     </div>
                 </div>
                 <?php endif; ?>
-                <input type="text" name="get-sum" pattern="[0-9]" data-rubs="<?=$allCurr[$currs['get-curr']]['rubs']?>" class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
+                <input type="text" name="get-sum" pattern="[0-9]" <?=$sendPrice == 1 ? 'data-decr="'.$getPrice.'"' : 'data-multi="'.$sendPrice.'"'?> class="field only-num not-click text_fz16 text_fw500 only-number" placeholder="Введите сумму" required>
             </div>
             <div class="main__form-change-row shadow-block">
                 <div class="title text_fz16">
@@ -410,7 +426,7 @@
                 <div class="courses text_fz16">
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/course.svg" alt="">
-                        Курс: <b class="text_upper">1 <?=$currs['send-curr']?> = <?=round($allCurr[$currs['send-curr']]['rubs']/$allCurr[$currs['get-curr']]['rubs'], 2)?> <?=$currs['get-curr']?></b>
+                        Курс: <b class="text_upper"><?=$sendPrice?> <?=$currs['send-curr']?> = <?=$getPrice?> <?=$currs['get-curr']?></b>
                     </div>
                     <div class="courses-item">
                         <img src="<?=bloginfo('template_url')?>/assets/images/reserve.svg" alt="">
@@ -538,8 +554,10 @@
                                 <?php
                                     $requis = get_field('requisites_default', 27);
                                     foreach(get_field('requisites_by-code', 27) as $oneCard) {
-                                        if ($oneCard['code'] == get_field('sender_carrency', $post_id)) 
+                                        if ($oneCard['code'] == get_field('sender_carrency', $post_id)) {
                                             $requis = $oneCard['card'];
+                                            break;
+                                        }
                                     }
                                 ?>
                                 <span class="list_text text_fw500"><?=preg_replace('/\d{4}/', "$0 ",$requis) ?></span>
@@ -555,8 +573,18 @@
                         </div>
                     </div>
                     <div class="info-row text_fz14 text_fz500">
+                        <?php
+                            $sendVal = 0;
+                            $getVal = 0;
+                            foreach($courses as $course) {
+                                if ($course['send']['code'] == get_field('sender_carrency', $post_id) && $course['get']['code'] == get_field('getter_carrency', $post_id)) {
+                                    $sendVal = $course['send']['price'];
+                                    $getVal = $course['get']['price'];
+                                }
+                            }
+                        ?>
                         <span>Курс:</span>
-                        <span class="text_upper">1 <?php the_field('sender_carrency', $post_id) ?> = <?=round($allCurr[get_field('sender_carrency', $post_id)]['rubs']/$allCurr[get_field('getter_carrency', $post_id)]['rubs'], 2)?> <?php the_field('getter_carrency', $post_id) ?></span>
+                        <span class="text_upper"><?=$sendVal?> <?php the_field('sender_carrency', $post_id) ?> = <?=$getVal?> <?php the_field('getter_carrency', $post_id) ?></span>
                     </div>
                     <div class="info-row text_fz14 text_fz500">
                         <span class="window">Окно оплаты</span>
@@ -620,7 +648,7 @@
                         <?php if (get_field('deny', $post_id)) : ?>
                         <?=get_field('reason', $post_id)?>
                         <?php else : ?>
-                        Перевод <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> должен поступить на <b><?=get_field('getter_bank', $post_id) ?: strtoupper(get_field('getter_carrency', $post_id)) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
+                        Перевод на сумму <b class="text_upper"><?php the_field('getter_sum', $post_id) ?> <?php the_field('getter_carrency', $post_id) ?></b> должен поступить на <b><?=get_field('getter_bank', $post_id) ?: strtoupper(get_field('getter_carrency', $post_id)) ?> <?=preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)) ?></b>
                         <?php endif; ?>
                     </div>
                 </div>

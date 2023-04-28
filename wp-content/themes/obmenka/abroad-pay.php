@@ -15,11 +15,11 @@
             <div class="abroad-pay__promo-codes">
                 <?php
                     function getRubs($code) {
-                        $arr = get_field('currences', 27);
+                        $arr = get_field('courses', 27);
 
                         foreach($arr as $item) {
-                            if ($item['code'] == $code) {
-                                return $item['rubs'];
+                            if ($item['send']['code'] == 'rub' && $item['get']['code'] == $code) {
+                                return $item['send']['price'];
                             }
                         }
                     }
