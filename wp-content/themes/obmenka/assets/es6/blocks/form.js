@@ -84,7 +84,7 @@ const form = () => {
             else {
                 expires = "";
             }
-            document.cookie = name + "=" + value + expires + "; path=/";
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
         }
         function deleteCookie(name) {
             setCookie(name, null, 0);
@@ -408,18 +408,11 @@ const form = () => {
                 hideModals();
                 setCookie('status', 'get-money', 4);
 
-                const payDone = new FormData();
-                payDone.append('post-type', 'pers-pay');
-                payDone.append('addr', document.querySelector('[data-e-addr]').getAttribute('data-e-addr'));
-                payDone.append('order-id', getCookie('order-post-id'));
-
-                postData(document.querySelector('[data-e-addr]').getAttribute('data-mail'), payDone)
-                .then((res) => {
-                    console.log(res);
+                getData(formCont.getAttribute('data-url')+'?action=payd_mess&order-id='+getCookie('order-post-id'))
+                .then(() => {
+                    checkStatus();
+                    rebuildForm();
                 });
-
-                checkStatus();
-                rebuildForm();
             }
             if (e.target.classList.contains('pay-done')) {
                 showModal('#pay-done');

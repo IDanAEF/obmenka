@@ -1,5 +1,13 @@
 const abroad_form = () => {
     try {
+        function isEmailValid(email) {
+            const emailRegexp = new RegExp(
+                /^[a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1}([a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1})*[a-zA-Z0-9]@[a-zA-Z0-9][-\.]{0,1}([a-zA-Z][-\.]{0,1})*[a-zA-Z0-9]\.[a-zA-Z0-9]{1,}([\.\-]{0,1}[a-zA-Z]){0,}[a-zA-Z0-9]{0,}$/i
+            );
+            
+            return emailRegexp.test(email);
+        }
+
         function delScroll() {
             document.querySelector('body').classList.add('fixed');
             document.querySelector('html').classList.add('fixed');
@@ -28,9 +36,17 @@ const abroad_form = () => {
         
             return await res.text();
         }
+        async function getData(url) {
+            let res = await fetch(url, {
+                method: "GET"
+            });
+        
+            return await res.text();
+        }
 
         const abroadForm = document.querySelector('#abroad-form form'),
-              inputs = abroadForm.querySelectorAll('.input input');
+              inputs = abroadForm.querySelectorAll('.input input'),
+              inputEmail = abroadForm.querySelector('input[type="email"]');
 
         abroadForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -45,14 +61,27 @@ const abroad_form = () => {
                 }
             }); 
 
+            if (!isEmailValid(inputEmail.value)) {
+                valid = false; 
+                inputEmail.classList.add('invalid');
+            }
+
             if (valid) {
                 const formData = new FormData(abroadForm);
 
-                formData.append('post-type', 'abroad');
+                formData.append('feedconttype', document.querySelector('[name="feedcontact"]').placeholder);
 
-                postData(abroadForm.action, formData)
-                .then(() => {
+                postData(abroadForm.action + '?action=create_buy_order', formData)
+                .then((res) => {
                     showModal('#feedsend');
+
+                    let checkStat = setInterval(() => {
+                        getData(abroadForm.action+'?action=check_status&post_id='+res)
+                        .then((res) => {
+                            res = JSON.parse(res);
+                            if (res) clearInterval(checkStat);
+                        });
+                    }, 10000);
                 });
             }
         });

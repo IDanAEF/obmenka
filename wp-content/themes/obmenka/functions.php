@@ -1,12 +1,445 @@
 <?php
+    add_action('init', 'register_post_types');
+
+    function register_post_types(){
+        register_post_type( 'abroad', [
+            'label'  => null,
+            'labels' => [
+                'name'               => 'Заявки',
+                'singular_name'      => 'Заявка',
+                'add_new'            => 'Добавить заявку',
+                'add_new_item'       => 'Добавление заявки', 
+                'edit_item'          => 'Редактирование заявки',
+                'new_item'           => 'Новая заявка',
+                'view_item'          => 'Смотреть заявку',
+                'search_items'       => 'Искать заявки',
+                'not_found'          => 'Не найдено', 
+                'not_found_in_trash' => 'Не найдено в корзине',
+                'parent_item_colon'  => '',
+                'menu_name'          => 'Заявки на покупку за рубежом',
+            ],
+            'description'            => '',
+            'public'                 => true,
+            'show_in_menu'           => null, 
+            'show_in_rest'        => null,
+            'rest_base'           => null,
+            'menu_position'       => null,
+            'menu_icon'           => null,
+            'hierarchical'        => false,
+            'supports'            => ['title'],
+            'taxonomies'          => [],
+            'has_archive'         => false,
+            'rewrite'             => true,
+            'query_var'           => true,
+        ] );
+    }
+
+    function getAmoTokenOnce() {
+        $subdomain = 'kostenichss';
+        $link = 'https://' . $subdomain . '.amocrm.ru/oauth2/access_token';
+        
+        $data = [
+            'client_id' => get_field('client_id', 27),
+            'client_secret' => get_field('client_secret', 27),
+            'grant_type' => 'authorization_code',
+            'code' => get_field('code', 27),
+            'redirect_uri' => 'https://topobmenka.com',
+        ];
+        
+        
+        $curl = curl_init();
+        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl,CURLOPT_URL, $link);
+        curl_setopt($curl,CURLOPT_HTTPHEADER,['Content-Type:application/json']);
+        curl_setopt($curl,CURLOPT_HEADER, false);
+        curl_setopt($curl,CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($curl,CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        $out = curl_exec($curl);
+        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        
+        $code = (int)$code;
+        
+        $errors = [
+            400 => 'Bad request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not found',
+            500 => 'Internal server error',
+            502 => 'Bad gateway',
+            503 => 'Service unavailable',
+        ];
+        
+        try
+        {
+            if ($code < 200 || $code > 204) {
+                throw new Exception(isset($errors[$code]) ? $errors[$code] : 'Undefined error', $code);
+            }
+        }
+        catch(\Exception $e)
+        {
+            die('Ошибка: ' . $e->getMessage() . PHP_EOL . 'Код ошибки: ' . $e->getCode());
+        }
+        
+        
+        $response = json_decode($out, true);
+        
+        $arrParamsAmo = [
+            "access_token" => $response['access_token'],
+            "refresh_token" => $response['refresh_token'],
+            "token_type" => $response['token_type'],
+            "expires_in" => $response['expires_in'],
+            "endTokenTime" => $response['expires_in'] + time(),
+        ];
+        
+        $args = [
+            'ID' => 27,
+            'meta_input' => [
+                'access_token' => $arrParamsAmo['access_token'],
+                'refresh_token' => $arrParamsAmo['refresh_token'],
+                'endtokentime' => $arrParamsAmo['endTokenTime']
+            ],
+        ];
+
+        wp_update_post(wp_slash($args));
+    }
+
+    function returnNewAmoToken() {
+        if(get_field('endtokentime', 27) > time()) return;
+
+        $link = 'https://kostenichss.amocrm.ru/oauth2/access_token';
+    
+        $data = [
+            'client_id' => get_field('client_id', 27),
+            'client_secret' => get_field('client_secret', 27),
+            'grant_type' => 'refresh_token',
+            'refresh_token' => get_field('refresh_token', 27),
+            'redirect_uri' => 'https://topobmenka.ru/',
+        ];
+    
+        $curl = curl_init(); 
+        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl,CURLOPT_URL, $link);
+        curl_setopt($curl,CURLOPT_HTTPHEADER,['Content-Type:application/json']);
+        curl_setopt($curl,CURLOPT_HEADER, false);
+        curl_setopt($curl,CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($curl,CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        $out = curl_exec($curl); 
+        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        
+        $code = (int)$code;
+        $errors = [
+            400 => 'Bad request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not found',
+            500 => 'Internal server error',
+            502 => 'Bad gateway',
+            503 => 'Service unavailable',
+        ];
+    
+        try
+        {
+            if ($code < 200 || $code > 204) {
+                throw new Exception(isset($errors[$code]) ? $errors[$code] : 'Undefined error', $code);
+            }
+        }
+        catch(\Exception $e)
+        {
+            die('Ошибка: ' . $e->getMessage() . PHP_EOL . 'Код ошибки: ' . $e->getCode());
+        }
+    
+        $response = json_decode($out, true);
+    
+        if($response) {
+    
+            $response["endTokenTime"] = time() + $response["expires_in"];
+    
+            $args = [
+                'ID' => 27,
+                'meta_input' => [
+                    'access_token' => $response['access_token'],
+                    'refresh_token' => $response['refresh_token'],
+                    'endtokentime' => $response['endTokenTime']
+                ],
+            ];
+    
+            wp_update_post(wp_slash($args));
+        }
+    }
+
+    function amoGetTaskSiteElem($taskId) {
+        returnNewAmoToken();
+
+        $headers = [
+            "Accept: application/json",
+            'Authorization: Bearer ' . get_field('access_token', 27)
+        ];
+
+        $link = "https://kostenichss.amocrm.ru/api/v4/leads/".$taskId;
+
+        $curl = curl_init();
+        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl,CURLOPT_URL, $link);
+        curl_setopt($curl,CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl,CURLOPT_HEADER, false);
+        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        $out = curl_exec($curl);
+        curl_close($curl);
+        $result = json_decode($out,TRUE);
+
+        foreach($result['custom_fields_values'] as $field) {
+            if ($field['field_id'] == 207349) {
+                return $field['values'][0]['value'];
+            }
+        }
+    }
+
+    function amoUpdateTask($elemId, $pipe) {
+        returnNewAmoToken();
+
+        $arrParams = [
+            [
+                "id" => (int)get_field('amocrm_lead_id', $elemId),
+                "status_id" => (int)$pipe,
+            ],
+        ];
+
+        $link = "https://kostenichss.amocrm.ru/api/v4/leads";
+    
+        $headers = [
+            "Accept: application/json",
+            'Authorization: Bearer ' . get_field('access_token', 27)
+        ];
+    
+        $curl = curl_init();
+        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl,CURLOPT_URL, $link);
+        curl_setopt($curl,CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl,CURLOPT_HEADER, false);
+        curl_setopt($curl,CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($curl,CURLOPT_POSTFIELDS, json_encode($arrParams));
+        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        $out = curl_exec($curl);
+        curl_close($curl);
+        $result = json_decode($out,TRUE);
+    }
+
+    function amoAddTask($elemId) {
+        returnNewAmoToken();
+
+        $sendVal = 0;
+        $getVal = 0;
+        $price = (int)get_field('sender_sum', $elemId);
+
+        foreach(get_field('courses', 27) as $course) {
+            if ($course['send']['code'] == get_field('sender_carrency', $elemId) && $course['get']['code'] == get_field('getter_carrency', $elemId)) {
+                $sendVal = $course['send']['price'];
+                $getVal = $course['get']['price'];
+            }
+
+            if ($course['send']['code'] == 'rub' && $course['get']['code'] == get_field('sender_carrency', $elemId)) {
+                $price = (int)(get_field('sender_sum', $elemId) * $course['send']['price']);
+            }
+        }
+
+        $contact_fields = [
+            [
+                "field_id" => 48105, //E-mail
+                "values" => [
+                    [
+                        "value" => get_field('send-email', $elemId)
+                    ]
+                ]
+            ],
+        ];
+
+        $custom_fields = [
+            [
+                "field_id" => 204247, //ID-code заявки
+                "values" => [
+                    [
+                        "value" => get_field('id-code', $elemId)
+                    ]
+                ]
+            ],
+            [
+                "field_id" => 207349, //ID элемента в админке
+                "values" => [
+                    [
+                        "value" => ''.$elemId.''
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204229, //Реквизиты отправителя
+                "values" => [
+                    [
+                        "value" => get_field('sender_card', $elemId)
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204231, //Банк отправителя
+                "values" => [
+                    [
+                        "value" => get_field('sender_bank', $elemId)
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204233, //Сумма отправителя
+                "values" => [
+                    [
+                        "value" => get_field('sender_sum', $elemId)
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204235, //Валюта отправителя
+                "values" => [
+                    [
+                        "value" => mb_strtoupper(get_field('sender_carrency', $elemId))
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204239, //Реквизиты получателя
+                "values" => [
+                    [
+                        "value" => get_field('getter_card', $elemId)
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204243, //Банк получателя
+                "values" => [
+                    [
+                        "value" => get_field('getter_bank', $elemId)
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204241, //Сумма получателя
+                "values" => [
+                    [
+                        "value" => get_field('getter_sum', $elemId)
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204245, //Валюта получателя
+                "values" => [
+                    [
+                        "value" => mb_strtoupper(get_field('getter_carrency', $elemId))
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 204301, //Курс обмена
+                "values" => [
+                    [
+                        "value" => $sendVal.' '.mb_strtoupper(get_field('sender_carrency', $elemId)).' = '.$getVal.' '.mb_strtoupper(get_field('getter_carrency', $elemId))
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 248387, //Источник
+                "values" => [
+                    [
+                        "value" => get_site_url()
+                    ],
+                ]
+            ],
+            [
+                "field_id" => 248403, //Дата
+                "values" => [
+                    [
+                        "value" => time()
+                    ],
+                ]
+            ],
+        ];
+
+        if (get_field('contacts', $elemId)) {
+            $contact_fields[] = [
+                "field_id" => 209291, //Контакт Telegram/WhatsApp 
+                "values" => [
+                    [
+                        "value" => get_field('contacts', $elemId)
+                    ]
+                ]
+            ];
+
+            $custom_fields[] = [
+                "field_id" => 204299, //Контакт Telegram/WhatsApp
+                "values" => [
+                    [
+                        "value" => get_field('contacts', $elemId)
+                    ],
+                ]
+            ];
+        }
+
+        $arrParams = [
+            [
+                "name" => "Заявка ".get_field('id-code', $elemId),
+                "price" => $price,
+                "_embedded" => [
+                    "contacts" => [
+                        [
+                            "first_name" => get_field('send-email', $elemId),
+                            "custom_fields_values" => $contact_fields
+                        ]
+                    ]
+                ],
+                "custom_fields_values" => $custom_fields
+            ]
+        ];
+
+        $link = "https://kostenichss.amocrm.ru/api/v4/leads/complex";
+    
+        $headers = [
+            "Accept: application/json",
+            'Authorization: Bearer ' . get_field('access_token', 27)
+        ];
+    
+        $curl = curl_init();
+        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl,CURLOPT_URL, $link);
+        curl_setopt($curl,CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl,CURLOPT_HEADER, false);
+        curl_setopt($curl,CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($curl,CURLOPT_POSTFIELDS, json_encode($arrParams));
+        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        $out = curl_exec($curl);
+        curl_close($curl);
+        $result = json_decode($out,TRUE);
+    
+        return $result[0];
+    }
+
     add_theme_support('menus');
     add_theme_support('post-thumbnails');
 
     function obmenkaAddScripts() {
         wp_enqueue_style( 'obmenka_main_style', get_template_directory_uri() . '/assets/css/style.min.css' );
-        wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css', false, '4' );
+        wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css', false, '6' );
         
-        wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), '17', true );
+        wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), '20', true );
         wp_enqueue_script( 'obmenka_custom_scrit', get_template_directory_uri() . '/custom.js', array(), null, true );
     }
 
@@ -39,8 +472,90 @@
         });
     });
 
+    function order_pipe_update(){
+        $lead = $_POST['leads']['status'][0]['id'];
+        $leadPipe = $_POST['leads']['status'][0]['status_id'];
+        $elemId = amoGetTaskSiteElem($lead);
+
+        $args = [
+            'ID' => $elemId,
+        ];
+
+        if ($leadPipe == 142) {
+            $args['meta_input'] = [
+                'payd' => 1,
+                'finish' => 1
+            ];
+        } else if ($leadPipe == 143) {
+            $args['meta_input'] = [
+                'finish' => 0,
+                'deny' => 1
+            ];
+        }
+
+        wp_update_post(wp_slash($args));
+
+        die();
+    }
+    
+    add_action('wp_ajax_order_pipe_update', 'order_pipe_update');
+    add_action('wp_ajax_nopriv_order_pipe_update', 'order_pipe_update');
+
     function delete_order(){
-        $deleted = wp_delete_post($_GET['post_id']);
+        //$deleted = wp_delete_post($_GET['post_id']);
+        $post_id = $_GET['post_id'];
+
+        amoUpdateTask($post_id, 57697570);
+
+        wp_set_post_tags($post_id, 'Отменена пользователем/истекло время оплаты');
+
+        $to = get_option('admin_email'); 
+        $from = get_option('admin_email');
+        $subject = "Obmenka: Пользователь отменил заявку/истекло время для оплаты"; 
+        $messText = "
+            ID заявки: ".get_field('id-code', $post_id)."
+            Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
+        ";
+        $message = "Информационное сообщение Obmenka
+        ------------------------------------------
+        
+        ".$messText."
+        
+        Сообщение сгенерировано автоматически"; 
+        
+        $mailheaders = "MIME-Version: 1.0\r\n"; 
+        $mailheaders .="Content-Type: text/plain; charset=UTF-8\r\n"; 
+        $mailheaders .= "From: ".$from."\r\n";
+        $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
+        
+        $rsf = mail($to,$subject,$message,$mailheaders);
+
+        if (get_field('id-code', $post_id)) {
+            $to = get_field('send-email', $post_id); 
+            $from = 'info@topobmenka.com';
+            $subject = "Obmenka: Вы отменили заявку/истекло время ожидания оплаты."; 
+            $messText = "
+                ID заявки: ".get_field('id-code', $post_id)."
+            ";
+            $message = "Информационное сообщение Obmenka
+            ------------------------------------------
+            
+            ".$messText."
+
+            Напишите нашей поддержке, если у вас возникли трудности:
+            info@topobmenka.com
+            https://t.me/TopObmenka
+            
+            Сообщение сгенерировано автоматически"; 
+             
+            // $mailheaders = "MIME-Version: 1.0\r\n"; 
+            // $mailheaders .="Content-Type: text/plain; charset=UTF-8\r\n"; 
+            // $mailheaders .= "From: ".$from."\r\n";
+            $mailheaders = "Reply-To: ".get_option('admin_email')."\r\n";
+            //$mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
+            
+            $rsf = wp_mail($to,$subject,$message,$mailheaders);
+        }
 
         die();
     }
@@ -60,6 +575,89 @@
     
     add_action('wp_ajax_check_status', 'check_status');
     add_action('wp_ajax_nopriv_check_status', 'check_status');
+
+    add_action('save_post', 'order_update', 10, 4);
+
+    function order_update($post_id){
+        if ( wp_is_post_revision($post_id) || get_post($post_id)->post_status != 'publish' )
+		    return;
+
+        clean_post_cache($post_id);
+
+        $finish = get_post_meta($post_id, 'finish', true);
+        
+        if (get_the_category($post_id)[0]->term_id == 3 && $finish) {
+            $to = get_field('send-email', $post_id); 
+            $from = 'info@topobmenka.com';
+            $subject = "Obmenka: Ваша заявка успешно завершена."; 
+            $messText = "
+                Ваша заявка - ".get_field('id-code', $post_id)." - успешно завершена
+
+                Перевод на сумму ".get_field('getter_sum', $post_id)." ".mb_strtoupper(get_field('getter_carrency', $post_id))." должен поступить на ".(get_field('getter_bank', $post_id) ?: get_field('getter_carrency', $post_id))." ".(preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)))."
+
+                Спасибо, что выбрали нас!
+            ";
+            $message = "Информационное сообщение Obmenka
+            ------------------------------------------
+            
+            ".$messText."
+
+            Поддержка:
+            info@topobmenka.com
+            https://t.me/TopObmenka
+            
+            Сообщение сгенерировано автоматически"; 
+
+            wp_set_post_tags($post_id, 'Завершено');
+            
+            $mailheaders = "Reply-To: ".get_option('admin_email')."\r\n";
+            $rsf = wp_mail($to,$subject,$message,$mailheaders);
+
+            amoUpdateTask($post_id, 142);
+        }
+    }
+
+    function payd_mess(){
+        $to = get_option('admin_email'); 
+        $from = get_option('admin_email');
+        $subject = "Obmenka: Пользователь совершил перевод";
+        $message = "Информационное сообщение Obmenka
+        ------------------------------------------
+        
+        Пользователь совершил перевод по заявке:
+
+        https://topobmenka.com/wp-admin/post.php?post=".$_GET['order-id']."&action=edit
+        
+        
+        Сообщение сгенерировано автоматически"; 
+        
+        $boundary = "--".md5(uniqid(time())); 
+        $mailheaders = "MIME-Version: 1.0\n"; 
+        $mailheaders .="Content-Type: multipart/mixed; boundary=".$boundary."\n"; 
+        $mailheaders .= "From: ".$from."\r\n";
+        $multipart = "--".$boundary."\n"; 
+        $multipart .= "Content-Type: text/plain; charset=UTF-8\n\n"; 
+        $multipart .= $message."\n\n"; 
+        
+        $rsf = mail($to,$subject,$multipart,$mailheaders);
+
+        $args = [
+            'ID' => $_GET['order-id'],
+            'meta_input' => [
+                'payd' => 1,
+            ],
+        ];
+
+        wp_set_post_tags($_GET['order-id'], 'Пользователь подтвердил оплату');
+        wp_update_post(wp_slash($args));
+
+        amoUpdateTask($post_id, 57528674);
+
+        die();
+    }
+    
+    add_action('wp_ajax_payd_mess', 'payd_mess');
+    add_action('wp_ajax_nopriv_payd_mess', 'payd_mess');
 
     function create_order(){
         date_default_timezone_set('Europe/Moscow');
@@ -218,6 +816,18 @@
             $rsf = wp_mail($to,$subject,$message,$mailheaders);
         }
 
+        $addTaskRes = amoAddTask($post_id);
+
+        $args = [
+            'ID' => $post_id,
+            'meta_input' => [
+                'amocrm_lead_id' => $addTaskRes['id'],
+                'amocrm_contact_id' => $addTaskRes['contact_id']
+            ],
+        ];
+
+        wp_update_post(wp_slash($args));
+
         echo $post_id;
         die();
     }
@@ -225,6 +835,80 @@
     
     add_action('wp_ajax_create_order', 'create_order');
     add_action('wp_ajax_nopriv_create_order', 'create_order');
+
+    function create_buy_order(){
+        date_default_timezone_set('Europe/Moscow');
+
+        $post_data = [
+            'post_title'    => $_POST['feedproduct'],
+            'post_name'     => $_POST['feedproduct'],
+            'post_status'   => 'publish',
+            'post_type'     => 'abroad',
+            'post_author'   => 1,
+            'ping_status'   => 'open',
+            'post_category' => [],
+            'meta_input'    => [
+                'link' => $_POST['feedlink'],
+                'name' => $_POST['feedproduct'],
+                'price' => $_POST['feedprice'],
+                'curr' => $_POST['feedcurr'],
+                'details' => $_POST['feedmess'],
+                'contact' => $_POST['feedcontact'],
+                'conttype' => $_POST['feedconttype']
+            ],
+        ];
+        
+        $post_id = wp_insert_post($post_data);
+
+        $to = get_option('admin_email'); 
+        $from = get_option('admin_email');
+        $subject = "Obmenka: Новая заявка на покупку за рубежом"; 
+        $messText = "
+            Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
+
+            Ссылка на товар или счет для оплаты: ".$_POST['feedlink']."
+            Название товара: ".$_POST['feedproduct']."
+            Цена товара: ".$_POST['feedprice']."
+            Детали заказа:
+            ".$_POST['feedmess']."
+
+            Способ связи: ".$_POST['feedcontact']."
+
+            Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
+        ";
+        $message = "Информационное сообщение Obmenka
+        ------------------------------------------
+        
+        Вы получили новую заявку - 
+        
+        ".$messText."
+        
+        Сообщение сгенерировано автоматически"; 
+        
+        $mailheaders = "MIME-Version: 1.0\r\n"; 
+        $mailheaders .="Content-Type: text/plain; charset=UTF-8\r\n"; 
+        $mailheaders .= "From: ".$from."\r\n";
+        $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
+        
+        $rsf = mail($to,$subject,$message,$mailheaders);
+
+        // $addTaskRes = amoAddTask($post_id);
+
+        // $args = [
+        //     'ID' => $post_id,
+        //     'meta_input' => [
+        //         'amocrm_lead_id' => $addTaskRes['id'],
+        //         'amocrm_contact_id' => $addTaskRes['contact_id']
+        //     ],
+        // ];
+
+        // wp_update_post(wp_slash($args));
+
+        die();
+    }
+    
+    add_action('wp_ajax_create_buy_order', 'create_buy_order');
+    add_action('wp_ajax_nopriv_create_buy_order', 'create_buy_order');
 
     function form_steps(){
         $step = (isset($_COOKIE['step']) ? $_COOKIE['step'] : 1);
@@ -437,7 +1121,7 @@
                 <div class="contacts list field list_target input-change text_fz16">
                     <div class="cards-field input-field text_fz16">
                         <img src="<?=bloginfo('template_url')?>/assets/images/whatsapp.svg" alt="" class="send-card-img list_img">
-                        <input class="list_input" type="tel" name="contacts" placeholder="Whats App">
+                        <input class="list_input" type="tel" data-mask="+_ (___) ___-__-__" name="contacts" placeholder="Whats App">
                     </div>
                     <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
                     <div class="list_items">
@@ -522,7 +1206,7 @@
             <?php
                 $post_id = $_COOKIE['order-post-id'];    
             ?>
-            <div class="main__form-change-order" data-mail="<?=bloginfo('template_url')?>/mail.php" data-e-addr="<?=get_option('admin_email')?>" data-date-out="<?=get_post_timestamp($post_id) + 1170?>">
+            <div class="main__form-change-order" data-e-addr="<?=get_option('admin_email')?>" data-date-out="<?=get_post_timestamp($post_id) + 1170?>">
                 <div class="main__form-change-head">
                     <h2 class="text_fz18 text_fw700">Ваша заявка создана</h2>
                     <span class="text_fz16"><b>ID:</b> <?php the_field('id-code', $post_id) ?></span>

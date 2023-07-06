@@ -55,8 +55,7 @@
             <div class="abroad-pay__form-row" id="abroad-form">
                 <div class="abroad-pay__form-feed abroad-pay__form-col">
                     <h2 class="abroad-pay__form-for-title title text_fz28 text_fw700">Оформить заявку</h2>
-                    <form action="<?=bloginfo('template_url')?>/mail.php">
-                        <input type="text" name="sender_e-addr" value="<?=get_option('admin_email')?>" hidden>
+                    <form action="<?=admin_url( "admin-ajax.php" )?>" class="main__form">
                         <div class="label">
                             <span class="text_fz16 text_fw600">Ссылка на товар или счет для оплаты:</span>
                             <div class="input text_fz16 text_fw500">
@@ -75,9 +74,24 @@
                         </div>
                         <div class="label">
                             <span class="text_fz16 text_fw600">Цена товара:</span>
-                            <div class="input text_fz16 text_fw500">
+                            <div class="input text_fz16 text_fw500 in-row">
                                 <img src="<?=bloginfo('template_url')?>/assets/images/wavy_check.svg" alt="">
                                 <input type="text" name="feedprice" placeholder="Цена товара">
+                                <div class="field list list_target text_fz16 text_upper target-banks">
+                                    <input class="list_input" type="text" name="feedcurr" value="usd" hidden>
+                                    <div class="list_info">
+                                        <span class="list_text text_fw500">usd</span>
+                                    </div>
+                                    <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
+                                    <div class="list_items">
+                                        <div class="list_items-val long" data-value="usd">
+                                            usd
+                                        </div>
+                                        <div class="list_items-val long" data-value="eur">
+                                            eur
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <span class="error text_fz16 text_fw600"></span>
                         </div>
@@ -90,10 +104,35 @@
                             <span class="error text_fz16 text_fw600"></span>
                         </div>
                         <div class="label">
+                            <span class="text_fz16 text_fw600">Email:</span>
+                            <div class="input text_fz16 text_fw500">
+                                <img src="<?=bloginfo('template_url')?>/assets/images/chat.svg" alt="">
+                                <input type="email" name="feedmail" placeholder="Ваш E-mail">
+                            </div>
+                            <span class="error text_fz16 text_fw600"></span>
+                        </div>
+                        <div class="label">
                             <span class="text_fz16 text_fw600">Способ связи (телефон или @username):</span>
                             <div class="input text_fz16 text_fw500">
                                 <img src="<?=bloginfo('template_url')?>/assets/images/phone.svg" alt="">
-                                <input type="text" name="feedcontact" placeholder="Номер телефона или @username">
+                                <!-- <input type="text" name="feedcontact" placeholder="Номер телефона или @username"> -->
+                                <div class="list field list_target input-change text_fz16">
+                                    <div class="input-field text_fz16">
+                                        <input class="list_input" type="tel" data-mask="+_ (___) ___-__-__" name="feedcontact" placeholder="Телефон" reguired>
+                                    </div>
+                                    <img src="<?=bloginfo('template_url')?>/assets/images/arrow_down.svg" alt="">
+                                    <div class="list_items">
+                                        <div class="list_items-val long" data-mask="+_ (___) ___-__-__" data-value="Телефон" data-type="tel">
+                                            Телефон
+                                        </div>
+                                        <div class="list_items-val long" data-mask="+_ (___) ___-__-__" data-value="Whats App" data-type="tel">
+                                            Whats App
+                                        </div>
+                                        <div class="list_items-val long" data-value="Telegram" data-type="text">
+                                            Telegram
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <span class="error text_fz16 text_fw600"></span>
                         </div>

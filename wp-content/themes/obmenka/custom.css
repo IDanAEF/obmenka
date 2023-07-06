@@ -12,3 +12,12 @@
 .footer__top {
     background: none;
 }
+.main__form .list_items {
+    width: fit-content;
+    right: 0;
+    left: unset;
+}
+
+.main__form .input-change .list_items {
+    width: 100%;
+}
