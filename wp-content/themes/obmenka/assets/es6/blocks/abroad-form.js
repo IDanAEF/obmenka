@@ -4,7 +4,7 @@ const abroad_form = () => {
             const emailRegexp = new RegExp(
                 /^[a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1}([a-zA-Z0-9][\-_\.\+\!\#\$\%\&\'\*\/\=\?\^\`\{\|]{0,1})*[a-zA-Z0-9]@[a-zA-Z0-9][-\.]{0,1}([a-zA-Z][-\.]{0,1})*[a-zA-Z0-9]\.[a-zA-Z0-9]{1,}([\.\-]{0,1}[a-zA-Z]){0,}[a-zA-Z0-9]{0,}$/i
             );
-            
+
             return emailRegexp.test(email);
         }
 
@@ -33,14 +33,14 @@ const abroad_form = () => {
                 method: "POST",
                 body: data
             });
-        
+
             return await res.text();
         }
         async function getData(url) {
             let res = await fetch(url, {
                 method: "GET"
             });
-        
+
             return await res.text();
         }
 
@@ -59,10 +59,10 @@ const abroad_form = () => {
 
                     valid = false;
                 }
-            }); 
+            });
 
             if (!isEmailValid(inputEmail.value)) {
-                valid = false; 
+                valid = false;
                 inputEmail.classList.add('invalid');
             }
 
@@ -74,7 +74,6 @@ const abroad_form = () => {
                 postData(abroadForm.action + '?action=create_buy_order', formData)
                 .then((res) => {
                     showModal('#feedsend');
-
                     let checkStat = setInterval(() => {
                         getData(abroadForm.action+'?action=check_status&post_id='+res)
                         .then((res) => {

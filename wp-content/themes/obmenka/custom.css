@@ -21,3 +21,114 @@
 .main__form .input-change .list_items {
     width: 100%;
 }
+
+
+.reviews-modal {
+    display: flex;
+    flex-direction: column;
+}
+.close-reviews {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+#closereview {
+  display: flex;
+}
+.close-reviews svg {
+  cursor: pointer;
+}
+.review-input {
+  display: flex;
+  flex-direction: column;
+  margin-top: 32px;
+}
+.review-input:first-child {
+  margin-top: 0px;
+}
+.review-input span {
+  color: var(--text-secondary-2, #B0B0B0);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.review-input input, textarea {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 50px;
+  margin-top: 8px;
+}
+.review-input textarea {
+  height: 155px;
+  resize: none;
+}
+.reviews-modal .button {
+  width: 100%;
+  transition: all 0.4s;
+}
+
+.modal-review {
+  position: fixed;
+  top: -100%;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  background: rgba(41,41,41,.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: .4s all;
+}
+.modal-review.active {
+  opacity: 1;
+  visibility: visible;
+  top: 0;
+}
+
+.modal__review {
+  position: relative;
+  background: #fff;
+  box-shadow: 0 8px 18px -6px rgba(24,39,75,.12),0 12px 42px -4px rgba(24,39,75,.12);
+  border-radius: 16px;
+  width: 620px;
+  padding: 40px;
+  flex-direction: column;
+  display: none;
+}
+
+.modal__review.active {
+  display: flex;
+}
+
+.modal-titile {
+  font-size: 28px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.privacy-review a {
+  margin-left: -5px;
+}
+
+.modal-review .button.block {
+  pointer-events: none;
+  cursor: default;
+  background-color: lightgray;
+}
+
+@media (max-width:768px) {
+  .review-input {
+    margin-top: 12px;
+  }
+  .modal__review {
+    padding: 25px;
+  }
+}

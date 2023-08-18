@@ -1,146 +1,5 @@
 <?php
 
-function getCaptcha($response) {
-    $Response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=6Le_tBQnAAAAAPVOHHnH-fB6-9S1PrhKJLALV4YI&response=".$response);
-    $Return = json_decode($Response);
-    return $Return;
-}
-
-//вывод даты для постов
-function show_future_posts($posts)
-{
-    global $wp_query, $wpdb;
-    if (is_single() && $wp_query->post_count == 0) {
-        $posts = $wpdb->get_results($wp_query->request);
-    }
-    return $posts;
-}
-add_filter('the_posts', 'show_future_posts');
-
-// Регистрируем новый тип записи "Отзывы"
-function custom_reviews_post_type() {
-    $labels = array(
-        'name'               => 'Отзывы',
-        'singular_name'      => 'Отзыв',
-        'menu_name'          => 'Отзывы',
-        'add_new'            => 'Добавить новый',
-        'add_new_item'       => 'Добавить новый отзыв',
-        'edit_item'          => 'Редактировать отзыв',
-        'new_item'           => 'Новый отзыв',
-        'view_item'          => 'Просмотреть отзыв',
-        'search_items'       => 'Поиск отзывов',
-        'not_found'          => 'Отзывы не найдены',
-        'not_found_in_trash' => 'Отзывы не найдены в корзине',
-        'parent_item_colon'  => '',
-        'all_items'          => 'Все отзывы'
-    );
-    $args = array(
-        'labels'             => $labels,
-        'public'             => true,
-        'has_archive'        => false,
-        'show_ui'            => true,
-        'show_in_menu'       => true,
-        'menu_position'      => 5,
-        'menu_icon'          => 'dashicons-testimonial',
-        'supports'           => array( 'title', 'editor' ),
-        'rewrite'            => array( 'slug' => 'reviews' )
-    );
-    register_post_type( 'reviews', $args );
-}
-add_action( 'init', 'custom_reviews_post_type' );
-
-// Добавляем метабокс для полей "Имя" и "Телефон"
-function add_review_meta_boxes() {
-    add_meta_box(
-        'review_meta_box',
-        'Детали отзыва',
-        'review_meta_box_callback',
-        'reviews',
-        'normal',
-        'default'
-    );
-}
-add_action( 'add_meta_boxes', 'add_review_meta_boxes' );
-
-// Callback-функция для отображения полей "Имя" и "Телефон" в метабоксе
-function review_meta_box_callback( $post ) {
-    $name = get_post_meta( $post->ID, 'review_name', true );
-    $phone = get_post_meta( $post->ID, 'review_phone', true );
-
-    wp_nonce_field( basename( __FILE__ ), 'review_meta_box_nonce' );
-    ?>
-    <p>
-        <label for="review_name">Имя:</label>
-        <input type="text" name="review_name" id="review_name" value="<?php echo esc_attr( $name ); ?>">
-    </p>
-    <p>
-        <label for="review_phone">Телефон:</label>
-        <input type="tel" name="review_phone" id="review_phone" value="<?php echo esc_attr( $phone ); ?>">
-    </p>
-    <?php
-}
-
-// Сохраняем значения полей "Имя" и "Телефон" при сохранении отзыва
-function save_review_meta_box_data( $post_id ) {
-    if ( ! isset( $_POST['review_meta_box_nonce'] ) ) {
-        return;
-    }
-
-    if ( ! wp_verify_nonce( $_POST['review_meta_box_nonce'], basename( __FILE__ ) ) ) {
-        return;
-    }
-
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-        return;
-    }
-
-    if ( isset( $_POST['review_name'] ) ) {
-        update_post_meta( $post_id, 'review_name', sanitize_text_field( $_POST['review_name'] ) );
-    }
-
-    if ( isset( $_POST['review_phone'] ) ) {
-        update_post_meta( $post_id, 'review_phone', sanitize_text_field( $_POST['review_phone'] ) );
-    }
-}
-add_action( 'save_post_reviews', 'save_review_meta_box_data' );
-
-  // Обработка отправки формы отзыва от пользователя
-function process_review_form() {
-    $captcha = getCaptcha($_POST['g-recaptcha-response']);
-        
-    if ( isset( $_POST['submit-review'] ) && $captcha->success == true && $captcha->score > 0.55) {
-        $author_name = sanitize_text_field( $_POST['author_name'] );
-        $phone_number = sanitize_text_field( $_POST['phone_number'] );
-        $review_content = sanitize_textarea_field( $_POST['review_content'] );
-
-        // Создаем новую запись типа "Отзывы"
-        $new_review = array(
-            'post_title'   => wp_strip_all_tags( $author_name ),
-            'post_content' => $review_content,
-            'post_status'  => 'publish',
-            'post_type'    => 'reviews'
-        );
-
-        $review_id = wp_insert_post( $new_review );
-
-        // Сохраняем значения полей как мета-данные отзыва
-        if ( ! is_wp_error( $review_id ) ) {
-            update_post_meta( $review_id, 'review_name', $author_name );
-            update_post_meta( $review_id, 'review_phone', $phone_number );
-            // echo '<script>document.getElementById("review_message").innerHTML = "Спасибо за ваш отзыв!";</script>';
-            $redirect_url = home_url('/reviews/');
-            wp_redirect( $redirect_url );
-        } else {
-            echo '<script>document.getElementById("review_message").innerHTML = "Произошла ошибка при добавлении отзыва. Пожалуйста, повторите попытку позже.";</script>';
-        }
-    }
-}
-add_action( 'template_redirect', 'process_review_form' );
-
-
-
-
-//Заявки на покупку за рубежом
     add_action('init', 'register_post_types');
 
     function register_post_types(){
@@ -757,10 +616,10 @@ add_action( 'template_redirect', 'process_review_form' );
 
     function obmenkaAddScripts() {
         wp_enqueue_style( 'obmenka_main_style', get_template_directory_uri() . '/assets/css/style.min.css', false, '7' );
-        wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css', '7.3' ,true);
+        wp_enqueue_style( 'obmenka_custom_style', get_template_directory_uri() . '/custom.css', false, '7' );
 
         wp_enqueue_script( 'obmenka_main_scrit', get_template_directory_uri() . '/assets/js/script.js', array(), '28', true );
-        wp_enqueue_script( 'obmenka_custom_scrit', get_template_directory_uri() . '/custom.js', array(), '22.3.3', true );
+        wp_enqueue_script( 'obmenka_custom_scrit', get_template_directory_uri() . '/custom.js', array(), '22', true );
     }
 
     add_action( 'wp_enqueue_scripts', 'obmenkaAddScripts' );
@@ -922,11 +781,22 @@ add_action( 'template_redirect', 'process_review_form' );
         if (get_field('send-email', $post_id)) {
             $to = get_field('send-email', $post_id);
             $subject = "Obmenka: Вы отменили заявку/истекло время ожидания оплаты.";
-
-            $message = "<!DOCTYPE html><html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
+            // $message =
+            // "Информационное сообщение Obmenka
+            // ------------------------------------------
+            //
+            // ".$messText."
+            //
+            // Напишите нашей поддержке, если у вас возникли трудности:
+            // info@topobmenka.com
+            // https://t.me/TopObmenka
+            //
+            // Сообщение сгенерировано автоматически";
+            $message = "<!DOCTYPE html>
+             <html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
                <body>
-                 <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;'>
-                   <div style='max-width: 582px;width: 100%;margin:0 auto;'>
+                 <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;display: flex;justify-content: center;'>
+                   <div style='max-width: 582px;width: 100%;display: flex;flex-direction: column;align-items: center;margin:0 auto'>
                    <table cellpadding='0' cellspacing='0' border='0' style='width: 100%;'>
                      <tr>
                        <td style='width: 50%;'>
@@ -948,19 +818,13 @@ add_action( 'template_redirect', 'process_review_form' );
                        </td>
                      </tr>
                    </table>
-                       <div style='font-size: 18px;color: black;margin-top: 60px;text-align: center;border-bottom: 1px dashed #000080;'>Информационное сообщение Obmenka</div>
-                       <h1 style='font-size: 28px;line-height: 36px;color: black;text-align: center;'>Вы отменили заявку/истекло время ожидания оплаты</h1>
-                       <div style='display: flex;flex-direction: column;text-align: left;margin: 0 auto;margin-top: 20px;color:black;font-size: 18px;'>
-                         <p style='margin-top: 8px;margin-bottom: 0px;'>ID заявки: <b>".get_field('id-code', $post_id)."</b></p>
+                       <div style='font-size: 26px;line-height: 36px;color: black;margin-top: 60px;text-align: center;'>Информационное сообщение Obmenka</div>
+                       <div style='display: flex;flex-direction: column;text-align: center;margin: 0 auto;margin-top: 20px;color:black;font-size: 18px;'>
+                           <p style='margin-top: 8px;margin-bottom: 0px;'>Вы отменили заявку/истекло время ожидания оплаты.</b></p>
                        </div>
-                       <div style='text-align:left;margin: 0 auto;margin-top: 20px;color:black;font-size:18px;'>
-                         <p style='margin-top: 8px;margin-bottom: 0px;'>Напишите нашей поддержке, если у вас возникли трудности:</p>
-                         <a href='mailto:info@topobmenka.com' style='margin-top: 8px;margin-bottom: 0px;color:black'>info@topobmenka.com</a><br>
-                         <a href='https://t.me/TopObmenka' style='margin-top: 8px;margin-bottom: 0px;color:black'>https://t.me/TopObmenka</a>
-                       </div>
-                        <div style='margin-top: 16px;font-size: 18px'>
-                             <br>
-                             <p>Сообщение сгенерировано автоматически</p>
+                        <div style='display: flex;margin-top: 16px;'>
+                             <p style='font-size: 16px;'>Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit</p>
+                             <p><b>Сообщение сгенерировано автоматически</b></p>
                        </div>
                    </div>
                  </div>
@@ -1003,19 +867,33 @@ add_action( 'template_redirect', 'process_review_form' );
 
         $finish = get_post_meta($post_id, 'finish', true);
 
-        $mailheaders = "MIME-Version: 1.0\r\n";
-        $mailheaders .="Content-Type: text/html; charset=UTF-8\r\n";
-        $mailheaders .= "From: ".$from."\r\n";
-        $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
-
         if (get_the_category($post_id)[0]->term_id == 3 && $finish) {
             $to = get_field('send-email', $post_id);
             $from = 'info@topobmenka.com';
             $subject = "Obmenka: Ваша заявка успешно завершена.";
-            $message = "<!DOCTYPE html><html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
+            // $messText = "
+            //     Ваша заявка - ".get_field('id-code', $post_id)." - успешно завершена
+            //
+            //     Перевод на сумму ".get_field('getter_sum', $post_id)." ".mb_strtoupper(get_field('getter_carrency', $post_id))." должен поступить на ".(get_field('getter_bank', $post_id) ?: get_field('getter_carrency', $post_id))." ".(preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)))."
+            //
+            //     Спасибо, что выбрали нас!
+            // ";
+            // $message = "Информационное сообщение Obmenka
+            // ------------------------------------------
+            //
+            // ".$messText."
+            //
+            // Поддержка:
+            // info@topobmenka.com
+            // https://t.me/TopObmenka
+            //
+            // Сообщение сгенерировано автоматически";
+
+            $message = "<!DOCTYPE html>
+             <html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
                <body>
-                 <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;'>
-                   <div style='max-width: 582px;width: 100%;margin:0 auto;'>
+                 <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;display: flex;justify-content: center;'>
+                   <div style='max-width: 582px;width: 100%;display: flex;flex-direction: column;align-items: center;margin:0 auto'>
                    <table cellpadding='0' cellspacing='0' border='0' style='width: 100%;'>
                      <tr>
                        <td style='width: 50%;'>
@@ -1030,30 +908,26 @@ add_action( 'template_redirect', 'process_review_form' );
                           <a style='text-decoration: none;' target='_blank' href='https://t.me/TopObmenka'>
                             <img src='http://topobmenka.com/wp-content/uploads/2023/06/tg.png' alt=''>
                          </a>
-                         <a  style='text-decoration: none;'  target='_blank'  href='https://vk.com/obmenka_servis'>
+                         <a  style='text-decoration: none;' target='_blank'  href='https://vk.com/obmenka_servis'>
                            <img  src='http://topobmenka.com/wp-content/uploads/2023/06/vk.png' alt=''>
                          </a>
                        </div>
                        </td>
                      </tr>
                    </table>
-                       <div style='font-size: 18px;color: black;margin-top: 60px;text-align: center;border-bottom: 1px dashed #000080;'>Информационное сообщение Obmenka</div>
-                       <h1 style='font-size: 28px;line-height: 36px;color: black;text-align: center;'>Ваша заявка успешно завершена</h1>
-                       <div style='margin: 0 auto;margin-top: 20px;color:black;font-size: 18px;'>
+                       <div style='font-size: 26px;line-height: 36px;color: black;margin-top: 60px;text-align: center;'>Ваша заявка - ".get_field('id-code', $post_id)." - успешно завершена</div>
+                       <div style='display: flex;flex-direction: column;text-align: center;margin: 0 auto;margin-top: 20px;color:black;font-size: 18px;'>
                            <p style='margin-top: 8px;margin-bottom: 0px;'>Перевод на сумму ".get_field('getter_sum', $post_id)." ".mb_strtoupper(get_field('getter_carrency', $post_id))." должен поступить на ".(get_field('getter_bank', $post_id) ?: get_field('getter_carrency', $post_id))." ".(preg_replace('/\d{4}/', "$0 ",get_field('getter_card', $post_id)))."</b></p>
                        </div>
                         <div style='display: flex;margin-top: 16px;'>
-                             <p style='font-size: 18px;'>Спасибо, что выбрали нас!</p>
+                             <p style='font-size: 16px;'>Спасибо, что выбрали нас!</p>
+                             <p><b>Сообщение сгенерировано автоматически</b></p>
                        </div>
-                       <div style='text-align:left;margin: 0 auto;margin-top: 20px;color:black;font-size:18px;'>
-                         <p style='margin-top: 8px;margin-bottom: 0px;'>Напишите нашей поддержке, если у вас возникли трудности:</p>
-                         <a href='mailto:info@topobmenka.com' style='margin-top: 8px;margin-bottom: 0px;color:black'>info@topobmenka.com</a><br>
-                         <a href='https://t.me/TopObmenka' style='margin-top: 8px;margin-bottom: 0px;color:black'>https://t.me/TopObmenka</a>
-                       </div>
-                        <div style='margin-top: 16px;font-size: 18px'>
-                             <br>
-                             <p>Сообщение сгенерировано автоматически</p>
-                       </div>
+                       <div style='display: flex;margin-top: 16px;'>
+                            <p style='font-size: 16px;'>Поддержка:</p>
+                            <p>info@topobmenka.com</p>
+                            <p>https://t.me/TopObmenka</p>
+                      </div>
                    </div>
                  </div>
                </body>
@@ -1181,41 +1055,209 @@ add_action( 'template_redirect', 'process_review_form' );
         $from = get_option('admin_email');
         $subject = "Obmenka: Новая заявка от ".$_GET['send-email'];
 
-        $messText = "
-            ID заявки: ".$id."
 
-            E-mail: ".$_GET['send-email']."
-            ".($_GET['contacts'] ? 'Контакты: '.$_GET['contacts'].' - '.$contType : '')."
+        $message = "<!DOCTYPE html>
+          <html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
+            <body>
+              <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;display: flex;justify-content: center;'>
+                <div style='max-width: 582px;width: 100%;display: flex;flex-direction: column;align-items: center;margin:0 auto'>
+                <table cellpadding='0' cellspacing='0' border='0' style='width: 100%;'>
+                  <tr>
+                    <td style='width: 50%;'>
+                      <div style='margin: 20px;'>
+                            <a href='https://topobmenka.com/'>
+                               <img alt='logo.png' src='https://app.makemail.ru/content/e0b83b07ecd92e8bf6966d958d01b328.png' style='max-width: 170px;width: 100%;height: 100%;object-fit: contain;' />
+                            </a>
+                      </div>
+                    </td>
+                    <td style='width: 50%;'>
+                    <div style='margin: 20px;  text-align: right;'>
+                       <a style='text-decoration: none;' target='_blank' href='https://t.me/TopObmenka'>
+                         <img src='http://topobmenka.com/wp-content/uploads/2023/06/tg.png' alt=''>
+                      </a>
+                      <a  style='text-decoration: none;'  target='_blank'  href='https://vk.com/obmenka_servis'>
+                        <img  src='http://topobmenka.com/wp-content/uploads/2023/06/vk.png' alt=''>
+                      </a>
+                    </div>
+                    </td>
+                  </tr>
+                </table>
+                    <h1 style='font-size: 28px;line-height: 36px;color: black;text-align: center;'>Заявка принята<br> в обработку!</h1>
+                    <div style='display: flex;flex-direction: column;text-align: center;margin: 0 auto;margin-top: 20px;color:rgba(176, 176, 176, 1);font-size: 18px;'>
+                        <p style='margin-top: 8px;margin-bottom: 0px;'>Здравствуйте, <b style='color:black'>".$_GET['send-email']."!</b></p>
+                        <p style='margin-top: 8px;margin-bottom: 0px;'>Уважаемый клиент, вы создали заявку: <b style='color:black'>".$id."</b></p>
+                        <p style='margin-top: 8px;margin-bottom: 0px;'>Статус вашей заявки: <b style='color:black'>Принята в обработку</b></p>
+                        <p style='margin-top: 8px;margin-bottom: 0px;'>Будет обработана в течении: <b style='color:black'>5-15 минут</b></p>
+                    </div>
+                    <div style='width: 100%;padding: 30px 40px;background-color: white;border-radius: 10px;margin-top: 60px;'>
+                      <h3 style='color: black;text-align: center;font-size: 24px;font-weight: 600;'>Информация по заявке:</h3>
+                        <div style='margin-top: 24px;display: flex;flex-direction: column;'>
 
-            Курс обмена: ".$sendVal." ".mb_strtoupper($_GET['send-curr'])." = ".$getVal." ".mb_strtoupper($_GET['get-curr'])."
+                          <table class='table-full' style='display: flex;margin-top: 16px;border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; background: transparent repeat center center; padding: 0;' width='100%' bgcolor='transparent'>
+                            <tbody>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Курс обмена:</p>
+                                  </td>
 
-            Данные отправителя
-            Реквизиты: ".$_GET['send-card']."
-            Банк: ".$_GET['send-bank']."
-            Сумма: ".$_GET['send-sum']."
-            Валюта: ".mb_strtoupper($_GET['send-curr'])."
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$sendVal." ".mb_strtoupper($_GET['send-curr'])." = ".$getVal." ".mb_strtoupper($_GET['get-curr'])."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'><b>Данные отправителя:</b></p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Реквизиты:</p>
+                                  </td>
 
-            Данные получателя
-            Реквизиты: ".$_GET['get-card']."
-            Банк: ".$_GET['get-bank']."
-            Сумма: ".$_GET['get-sum']."
-            Валюта: ".mb_strtoupper($_GET['get-curr'])."
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['send-card']."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Банк:</p>
+                                  </td>
 
-            Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
-        ";
-        $message = "Информационное сообщение Obmenka
-        ------------------------------------------
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['send-bank']."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Сумма:</p>
+                                  </td>
 
-        Вы получили новую заявку -
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['send-sum']."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Валюта:</p>
+                                  </td>
 
-        Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".mb_strtoupper($_GET['send-curr'])."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Дата формирования:</p>
+                                  </td>
 
-        ".$messText."
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".date('d-m-Y H:i:s')." UTC+3</p>
+                                  </td>
+                                </tr>
 
-        Сообщение сгенерировано автоматически";
+
+
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'><b> Данные получателя:</b></p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Реквизиты:</p>
+                                  </td>
+
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['get-card']."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Банк:</p>
+                                  </td>
+
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['get-bank']."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Сумма:</p>
+                                  </td>
+
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['get-sum']."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Валюта:</p>
+                                  </td>
+
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".mb_strtoupper($_GET['get-curr'])."</p>
+                                  </td>
+                                </tr>
+                                <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                  <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                  <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Дата формирования:</p>
+                                  </td>
+
+                                  <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                    <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".date('d-m-Y H:i:s')." UTC+3</p>
+                                  </td>
+                                </tr>
+
+                            </tbody>
+                          </table>
+
+                        </div>
+                        <div style='display: flex;margin-top: 16px;'>
+                          <p style='font-size: 16px;'>Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit</p>
+                          <p><b>Сообщение сгенерировано автоматически</b></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+            </body>
+          </html>";
+
+
+        // $messText = "
+        //     ID заявки: ".$id."
+        //
+        //     E-mail: ".$_GET['send-email']."
+        //     ".($_GET['contacts'] ? 'Контакты: '.$_GET['contacts'].' - '.$contType : '')."
+        //
+        //     Курс обмена: ".$sendVal." ".mb_strtoupper($_GET['send-curr'])." = ".$getVal." ".mb_strtoupper($_GET['get-curr'])."
+        //
+        //     Данные отправителя
+        //     Реквизиты: ".$_GET['send-card']."
+        //     Банк: ".$_GET['send-bank']."
+        //     Сумма: ".$_GET['send-sum']."
+        //     Валюта: ".mb_strtoupper($_GET['send-curr'])."
+        //
+        //     Данные получателя
+        //     Реквизиты: ".$_GET['get-card']."
+        //     Банк: ".$_GET['get-bank']."
+        //     Сумма: ".$_GET['get-sum']."
+        //     Валюта: ".mb_strtoupper($_GET['get-curr'])."
+        //
+        //     Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
+        // ";
+        // $message = "Информационное сообщение Obmenka
+        // ------------------------------------------
+        //
+        // Вы получили новую заявку -
+        //
+        // Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
+        //
+        // ".$messText."
+        //
+        // Сообщение сгенерировано автоматически";
 
         $mailheaders = "MIME-Version: 1.0" . "\r\n";
-        $mailheaders .= "Content-type:text/plain;charset=UTF-8" . "\r\n";
+        $mailheaders .= "Content-type:text/html;charset=UTF-8" . "\r\n";
         $mailheaders .= "From: ".$from."\r\n";
         $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
 
@@ -1224,180 +1266,19 @@ add_action( 'template_redirect', 'process_review_form' );
         if ($_GET['send-email']) {
             $to = $_GET['send-email'];
             $subject = "Obmenka: Вами была успешно создана заявка на обмен.";
-            $message = "<!DOCTYPE html>
-              <html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
-                <body>
-                  <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;display: flex;justify-content: center;'>
-                    <div style='max-width: 582px;width: 100%;margin:0 auto'>
-                    <table cellpadding='0' cellspacing='0' border='0' style='width: 100%;'>
-                      <tr>
-                        <td style='width: 50%;'>
-                          <div style='margin: 20px;'>
-                                <a href='https://topobmenka.com/'>
-                                   <img alt='logo.png' src='https://app.makemail.ru/content/e0b83b07ecd92e8bf6966d958d01b328.png' style='max-width: 170px;width: 100%;height: 100%;object-fit: contain;' />
-                                </a>
-                          </div>
-                        </td>
-                        <td style='width: 50%;'>
-                        <div style='margin: 20px;  text-align: right;'>
-                           <a style='text-decoration: none;' target='_blank' href='https://t.me/TopObmenka'>
-                             <img src='http://topobmenka.com/wp-content/uploads/2023/06/tg.png' alt=''>
-                          </a>
-                          <a  style='text-decoration: none;'  target='_blank'  href='https://vk.com/obmenka_servis'>
-                            <img  src='http://topobmenka.com/wp-content/uploads/2023/06/vk.png' alt=''>
-                          </a>
-                        </div>
-                        </td>
-                      </tr>
-                    </table>
-                        <h1 style='font-size: 28px;line-height: 36px;color: black;text-align: center;'>Заявка принята<br> в обработку!</h1>
-                        <div style='text-align: center;margin: 0 auto;margin-top: 20px;color:rgba(176, 176, 176, 1);font-size: 18px;'>
-                            <p style='margin-top: 8px;margin-bottom: 0px;'>Здравствуйте, <b style='color:black'>".$_GET['send-email']."!</b></p>
-                            <p style='margin-top: 8px;margin-bottom: 0px;'>Уважаемый клиент, вы создали заявку: <b style='color:black'>".$id."</b></p>
-                            <p style='margin-top: 8px;margin-bottom: 0px;'>Статус вашей заявки: <b style='color:black'>Принята в обработку</b></p>
-                            <p style='margin-top: 8px;margin-bottom: 0px;'>Будет обработана в течении: <b style='color:black'>5-15 минут</b></p>
-                        </div>
-                        <div style='width: 100%;padding: 30px 40px;background-color: white;border-radius: 10px;margin-top: 60px;'>
-                          <h3 style='color: black;text-align: center;font-size: 24px;font-weight: 600;'>Информация по заявке:</h3>
-                            <div style='margin-top: 24px;display: flex;flex-direction: column;'>
-
-                              <table class='table-full' style='display: flex;margin-top: 16px;border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; background: transparent repeat center center; padding: 0;' width='100%' bgcolor='transparent'>
-                                <tbody>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Курс обмена:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$sendVal." ".mb_strtoupper($_GET['send-curr'])." = ".$getVal." ".mb_strtoupper($_GET['get-curr'])."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'><b>Данные отправителя:</b></p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Реквизиты:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['send-card']."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Банк:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['send-bank']."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Сумма:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['send-sum']."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Валюта:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".mb_strtoupper($_GET['send-curr'])."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Дата формирования:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".date('d-m-Y H:i:s')." UTC+3</p>
-                                      </td>
-                                    </tr>
-
-
-
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'><b> Данные получателя:</b></p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Реквизиты:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['get-card']."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Банк:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['get-bank']."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Сумма:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_GET['get-sum']."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Валюта:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".mb_strtoupper($_GET['get-curr'])."</p>
-                                      </td>
-                                    </tr>
-                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Дата формирования:</p>
-                                      </td>
-
-                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".date('d-m-Y H:i:s')." UTC+3</p>
-                                      </td>
-                                    </tr>
-
-                                </tbody>
-                              </table>
-
-                            </div>
-                          </div>
-                         <div style='text-align:left;margin: 0 auto;margin-top: 20px;color:black;font-size:18px;'>
-                         <p style='margin-top: 8px;margin-bottom: 0px;'>Напишите нашей поддержке, если у вас возникли трудности:</p>
-                         <a href='mailto:info@topobmenka.com' style='margin-top: 8px;margin-bottom: 0px;color:black'>info@topobmenka.com</a><br>
-                         <a href='https://t.me/TopObmenka' style='margin-top: 8px;margin-bottom: 0px;color:black'>https://t.me/TopObmenka</a>
-                       </div>
-                        <div style='margin-top: 16px;font-size: 18px'>
-                             <br>
-                             <p>Сообщение сгенерировано автоматически</p>
-                       </div>
-                        </div>
-                      </div>
-                </body>
-              </html>";
-            $mailheaders = "MIME-Version: 1.0" . "\r\n";
-            $mailheaders .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            $mailheaders .= "From: ".$from."\r\n";
-            $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
+            // $message = "Информационное сообщение Obmenka
+            // ------------------------------------------
+            //
+            // Детали вашей заявки -
+            //
+            // ".$messText."
+            //
+            // Поддержка:
+            // info@topobmenka.com
+            // https://t.me/TopObmenka
+            //
+            // Сообщение сгенерировано автоматически";
+            //
             $mailheaders .= "Reply-To: ".get_option('admin_email')."\r\n";
 
             $rsf = wp_mail($to,$subject,$message,$mailheaders);
@@ -1426,211 +1307,217 @@ add_action( 'template_redirect', 'process_review_form' );
     function create_buy_order(){
         date_default_timezone_set('Europe/Moscow');
 
-        $captcha = getCaptcha($_POST['g-recaptcha-response']);
-        
-        if($captcha->success == true && $captcha->score > 0.55) {
-            $post_data = [
-                'post_title'    => $_POST['feedproduct'],
-                'post_name'     => $_POST['feedproduct'],
-                'post_status'   => 'publish',
-                'post_type'     => 'abroad',
-                'post_author'   => 1,
-                'ping_status'   => 'open',
-                'post_category' => [],
-                'meta_input'    => [
-                    'link' => $_POST['feedlink'],
-                    'name' => $_POST['feedproduct'],
-                    'price' => $_POST['feedprice'],
-                    'curr' => $_POST['feedcurr'],
-                    'details' => $_POST['feedmess'],
-                    'email' => $_POST['feedmail'],
-                    'contact' => $_POST['feedcontact'],
-                    'conttype' => $_POST['feedconttype']
-                ],
-            ];
-    
-            $post_id = wp_insert_post($post_data);
-    
-            $to = get_option('admin_email');
-            $from = get_option('admin_email');
-            $subject = "Obmenka: Новая заявка на покупку за рубежом";
-    
-            $messText = "
-                Ссылка на товар или счет для оплаты: ".$_POST['feedlink']."
-                Название товара: ".$_POST['feedproduct']."
-                Цена товара: ".$_POST['feedprice']."
-                Валюта: ".mb_strtoupper($_POST['feedcurr'])."
-                Детали заказа:
-                ".$_POST['feedmess']."
-    
-                E-mail: ".$_POST['feedmail']."
-                Способ связи: ".$_POST['feedcontact']." ".$_POST['feedconttype']."
-    
-                Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
-            ";
-            $message = "Информационное сообщение Obmenka
-            ------------------------------------------
-    
-            Вы получили новую заявку -
-    
-            Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
-    
-            ".$messText."
-    
-            Сообщение сгенерировано автоматически";
-    
-            $mailheaders = "MIME-Version: 1.0\r\n";
-            $mailheaders .="Content-Type: text/plain; charset=UTF-8\r\n";
-            $mailheaders .= "From: ".$from."\r\n";
-            $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
-    
-            $rsf = mail($to,$subject,$message,$mailheaders);
-    
-            if ($_POST['feedmail']) {
-                $to = $_POST['feedmail'];
-                $subject = "Obmenka: Вы оставили заявку на покупку за рубежом";
-                $message = "<!DOCTYPE html>
-                      <html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
-                        <body>
-                          <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;display: flex;justify-content: center;'>
-                            <div style='max-width: 582px;width: 100%;margin:0 auto'>
-                            <table cellpadding='0' cellspacing='0' border='0' style='width: 100%;'>
-                              <tr>
-                                <td style='width: 50%;'>
-                                  <div style='margin: 20px;'>
-                                        <a href='https://topobmenka.com/'>
-                                           <img alt='logo.png' src='https://app.makemail.ru/content/e0b83b07ecd92e8bf6966d958d01b328.png' style='max-width: 170px;width: 100%;height: 100%;object-fit: contain;' />
-                                        </a>
-                                  </div>
-                                </td>
-                                <td style='width: 50%;'>
-                                <div style='margin: 20px;  text-align: right;'>
-                                   <a style='text-decoration: none;' target='_blank' href='https://t.me/TopObmenka'>
-                                     <img src='http://topobmenka.com/wp-content/uploads/2023/06/tg.png' alt=''>
-                                  </a>
-                                  <a  style='text-decoration: none;'  target='_blank'  href='https://vk.com/obmenka_servis'>
-                                    <img  src='http://topobmenka.com/wp-content/uploads/2023/06/vk.png' alt=''>
-                                  </a>
-                                </div>
-                                </td>
-                              </tr>
-                            </table>
-                                <h1 style='font-size: 28px;line-height: 36px;color: black;text-align: center;'>Заявка на покупку за рубежом<br> принята в обработку!</h1>
-                                <div style='text-align: center;margin: 0 auto;margin-top: 20px;color:rgba(176, 176, 176, 1);font-size: 18px;'>
-                                    <p style='margin-top: 8px;margin-bottom: 0px;'>Здравствуйте, уважаемый клиент!</b></p>
-                                    <p style='margin-top: 8px;margin-bottom: 0px;'>Вы создали заявку: <b style='color:black'>".$post_id."</b></p>
-                                    <p style='margin-top: 8px;margin-bottom: 0px;'>Статус вашей заявки: <b style='color:black'>Принята в обработку</b></p>
-                                    <p style='margin-top: 8px;margin-bottom: 0px;'>Будет обработана в течении: <b style='color:black'>5-15 минут</b></p>
-                                </div>
-                                <div style='width: 100%;padding: 30px 40px;background-color: white;border-radius: 10px;margin-top: 60px;'>
-                                  <h3 style='color: black;text-align: center;font-size: 24px;font-weight: 600;'>Информация по заявке:</h3>
-                                    <div style='margin-top: 24px;display: flex;flex-direction: column;'>
-    
-                                      <table class='table-full' style='display: flex;margin-top: 16px;border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; background: transparent repeat center center; padding: 0;' width='100%' bgcolor='transparent'>
-                                        <tbody>
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Ссылка на товар или счет для оплаты:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedlink']."</p>
-                                              </td>
-                                            </tr>
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-    
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Название товара:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedproduct']."</p>
-                                              </td>
-                                            </tr>
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Цена товара:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedprice']."</p>
-                                              </td>
-                                            </tr>
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Детали заказа:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedmess']."</p>
-                                              </td>
-                                            </tr>
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>E-mail:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedmail']."</p>
-                                              </td>
-                                            </tr>
-    
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Способ связи:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedcontact']." ".$_POST['feedconttype']."</p>
-                                              </td>
-                                            </tr>
-    
-                                            <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
-                                              <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
-                                              <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Дата формирования:</p>
-                                              </td>
-    
-                                              <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
-                                                <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".date('d-m-Y H:i:s')." UTC+3</p>
-                                              </td>
-                                            </tr>
-    
-                                        </tbody>
-                                      </table>
-    
-                                    </div>
-                                  </div>
-                                  <div style='text-align:left;margin: 0 auto;margin-top: 20px;color:black;font-size:18px;'>
-                                   <p style='margin-top: 8px;margin-bottom: 0px;'>Напишите нашей поддержке, если у вас возникли трудности:</p>
-                                   <a href='mailto:info@topobmenka.com' style='margin-top: 8px;margin-bottom: 0px;color:black'>info@topobmenka.com</a><br>
-                                   <a href='https://t.me/TopObmenka' style='margin-top: 8px;margin-bottom: 0px;color:black'>https://t.me/TopObmenka</a>
-                                 </div>
-                                  <div style='margin-top: 16px;font-size: 18px'>
-                                       <br>
-                                       <p>Сообщение сгенерировано автоматически</p>
-                                 </div>
-                                </div>
-                              </div>
-                        </body>
-                      </html>";;
-    
-                $rsf = wp_mail($to,$subject,$message,$mailheaders);
-            }
-    
-            $addTaskRes = amoAddTaskBuy($post_id);
-    
-            $args = [
-                'ID' => $post_id,
-                'meta_input' => [
-                    'amocrm_lead_id' => $addTaskRes['id'],
-                    'amocrm_contact_id' => $addTaskRes['contact_id']
-                ],
-            ];
-    
-            wp_update_post(wp_slash($args));
-    
-            echo $post_id;
+        $post_data = [
+            'post_title'    => $_POST['feedproduct'],
+            'post_name'     => $_POST['feedproduct'],
+            'post_status'   => 'publish',
+            'post_type'     => 'abroad',
+            'post_author'   => 1,
+            'ping_status'   => 'open',
+            'post_category' => [],
+            'meta_input'    => [
+                'link' => $_POST['feedlink'],
+                'name' => $_POST['feedproduct'],
+                'price' => $_POST['feedprice'],
+                'curr' => $_POST['feedcurr'],
+                'details' => $_POST['feedmess'],
+                'email' => $_POST['feedmail'],
+                'contact' => $_POST['feedcontact'],
+                'conttype' => $_POST['feedconttype']
+            ],
+        ];
+
+        $post_id = wp_insert_post($post_data);
+
+        $to = get_option('admin_email');
+        $from = get_option('admin_email');
+        $subject = "Obmenka: Новая заявка на покупку за рубежом";
+
+        $message = "<!DOCTYPE html>
+              <html xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' lang='en'>
+                <body>
+                  <div style='background-color:rgba(244, 244, 244, 1);padding: 90px;display: flex;justify-content: center;'>
+                    <div style='max-width: 582px;width: 100%;display: flex;flex-direction: column;align-items: center;margin:0 auto'>
+                    <table cellpadding='0' cellspacing='0' border='0' style='width: 100%;'>
+                      <tr>
+                        <td style='width: 50%;'>
+                          <div style='margin: 20px;'>
+                                <a href='https://topobmenka.com/'>
+                                   <img alt='logo.png' src='https://app.makemail.ru/content/e0b83b07ecd92e8bf6966d958d01b328.png' style='max-width: 170px;width: 100%;height: 100%;object-fit: contain;' />
+                                </a>
+                          </div>
+                        </td>
+                        <td style='width: 50%;'>
+                        <div style='margin: 20px;  text-align: right;'>
+                           <a style='text-decoration: none;' target='_blank' href='https://t.me/TopObmenka'>
+                             <img src='http://topobmenka.com/wp-content/uploads/2023/06/tg.png' alt=''>
+                          </a>
+                          <a  style='text-decoration: none;'  target='_blank'  href='https://vk.com/obmenka_servis'>
+                            <img  src='http://topobmenka.com/wp-content/uploads/2023/06/vk.png' alt=''>
+                          </a>
+                        </div>
+                        </td>
+                      </tr>
+                    </table>
+                        <h1 style='font-size: 28px;line-height: 36px;color: black;text-align: center;'>Вы получили новую заявку</h1>
+                        <div style='display: flex;flex-direction: column;text-align: center;margin: 0 auto;margin-top: 20px;color:rgba(176, 176, 176, 1);font-size: 18px;'>
+                            <p style='margin-top: 8px;margin-bottom: 0px;'> Ссылка для просмотра на сайте: <b style='color:black'>https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit</b></p>
+                        </div>
+                        <div style='width: 100%;padding: 30px 40px;background-color: white;border-radius: 10px;margin-top: 60px;'>
+                          <h3 style='color: black;text-align: center;font-size: 24px;font-weight: 600;'>Информация по заявке:</h3>
+                            <div style='margin-top: 24px;display: flex;flex-direction: column;'>
+
+                              <table class='table-full' style='display: flex;margin-top: 16px;border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; background: transparent repeat center center; padding: 0;' width='100%' bgcolor='transparent'>
+                                <tbody>
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Ссылка на товар или счет для оплаты:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedlink']."</p>
+                                      </td>
+                                    </tr>
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Название товара:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedproduct']."</p>
+                                      </td>
+                                    </tr>
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Цена товара:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedprice']."</p>
+                                      </td>
+                                    </tr>
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Детали заказа:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedmess']."</p>
+                                      </td>
+                                    </tr>
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>E-mail:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedmail']."</p>
+                                      </td>
+                                    </tr>
+
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Способ связи:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".$_POST['feedcontact']." ".$_POST['feedconttype']."</p>
+                                      </td>
+                                    </tr>
+
+                                    <tr style='vertical-align: top; text-align: left; padding: 0;' align='left'>
+                                      <td height='%' style='background-color: transparent; width: 50% !important; height: % !important; word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; margin: 0; padding: 0;' width='50%' align='left' bgcolor='transparent' valign='top'>
+                                      <p style='color: rgba( 176 , 176 , 176 , 1 ); font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>Дата формирования:</p>
+                                      </td>
+
+                                      <td class='' style='word-break: break-word; -webkit-hyphens: none; -moz-hyphens: none; hyphens: none; border-collapse: collapse !important; vertical-align: top; text-align: left; width: 100%; color: #717e7f; font-family: Helvetica, Arial, sans-serif; font-weight: normal; font-size: 14px; background: transparent repeat center center; margin: 0; padding: 0px 10px;' align='left' bgcolor='transparent' valign='top'>
+                                        <p style='color: black; font-weight: bold; font-size: 16px; text-align: left; line-height: 1.5; margin: 0 0 10px; padding: 0;' align='left'>".date('d-m-Y H:i:s')." UTC+3</p>
+                                      </td>
+                                    </tr>
+
+                                </tbody>
+                              </table>
+
+                            </div>
+                            <div style='display: flex;margin-top: 16px;'>
+                              <p><b>Сообщение сгенерировано автоматически</b></p>
+                            </div>
+                            <div style='display: flex;margin-top: 16px;'>
+                              <span>Поддержка:</span><br>
+                              <span>info@topobmenka.com</span><br>
+                              <span>https://t.me/TopObmenka</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                </body>
+              </html>";
+
+
+        // $messText = "
+        //     Ссылка на товар или счет для оплаты: ".$_POST['feedlink']."
+        //     Название товара: ".$_POST['feedproduct']."
+        //     Цена товара: ".$_POST['feedprice']."
+        //     Валюта: ".mb_strtoupper($_POST['feedcurr'])."
+        //     Детали заказа:
+        //     ".$_POST['feedmess']."
+        //
+        //     E-mail: ".$_POST['feedmail']."
+        //     Способ связи: ".$_POST['feedcontact']." ".$_POST['feedconttype']."
+        //
+        //     Дата формирования: ".date('d-m-Y H:i:s')." UTC+3
+        // ";
+        // $message = "Информационное сообщение Obmenka
+        // ------------------------------------------
+        //
+        // Вы получили новую заявку -
+        //
+        // Ссылка для просмотра на сайте: https://topobmenka.com/wp-admin/post.php?post=".$post_id."&action=edit
+        //
+        // ".$messText."
+        //
+        // Сообщение сгенерировано автоматически";
+
+        $mailheaders = "MIME-Version: 1.0\r\n";
+        $mailheaders .="Content-Type: text/html; charset=UTF-8\r\n";
+        $mailheaders .= "From: ".$from."\r\n";
+        $mailheaders .= "X-Mailer: PHP/".phpversion()."\r\n";
+
+        $rsf = mail($to,$subject,$message,$mailheaders);
+
+        if ($_POST['feedmail']) {
+            $to = $_POST['feedmail'];
+            $subject = "Obmenka: Вы оставили заявку на покупку за рубежом";
+            // $message = "Информационное сообщение Obmenka
+            // ------------------------------------------
+            //
+            // Данные заявки -
+            //
+            // ".$messText."
+            //
+            // Поддержка:
+            // info@topobmenka.com
+            // https://t.me/TopObmenka
+            //
+            // Сообщение сгенерировано автоматически";
+
+            $rsf = wp_mail($to,$subject,$message,$mailheaders);
         }
+
+        $addTaskRes = amoAddTaskBuy($post_id);
+
+        $args = [
+            'ID' => $post_id,
+            'meta_input' => [
+                'amocrm_lead_id' => $addTaskRes['id'],
+                'amocrm_contact_id' => $addTaskRes['contact_id']
+            ],
+        ];
+
+        wp_update_post(wp_slash($args));
+
+        echo $post_id;
 
         die();
     }

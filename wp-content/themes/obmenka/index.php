@@ -87,8 +87,9 @@
                                 </div>
                             </div>
                             <?php
+                            
                             if ($r + 1 == 16 || (($r + 1) % 4 == 0 && $r != 0)) echo '</div>';
-                            if ($r + 1 != 16 && (($r + 1) % 4 == 0 && $r != 0)) echo '<div class="main__reviews-slider-slide slider-item">';
+                            if ($r + 1 != 16 && (($r + 1) % 4 == 0 && $r != 0) && ($r + 1) != count($result['response']['items'])) echo '<div class="main__reviews-slider-slide slider-item">';
                             $r++;
                         }
                     ?>

@@ -12,6 +12,21 @@
     <?php
         wp_head();
     ?>
+
+    <script src="https://www.google.com/recaptcha/api.js?render=6Le_tBQnAAAAACWnyL8M4A5BhUl-JcWjK-vngUr8"></script>
+    <script>
+        const onReady = () => {
+            grecaptcha.ready(function() {
+                grecaptcha.execute('6Le_tBQnAAAAACWnyL8M4A5BhUl-JcWjK-vngUr8', {action: 'contact'}).then(function(token) {
+                    document.querySelectorAll('.g-recaptcha-response').forEach(input => input.value = token);
+                });
+            });
+        }
+        
+        onReady();
+
+        setInterval(onReady, 30000);
+    </script>
 </head>
 <body>
     <header class="header text_fz16 text_fw500">
@@ -20,7 +35,7 @@
                 <img src="<?php the_field('logo', 27) ?>" alt="">
             </a>
             <nav class="header__nav">
-                <?php 
+                <?php
 					wp_nav_menu( [
 						'menu'            => 'Main',
 						'container'       => false,

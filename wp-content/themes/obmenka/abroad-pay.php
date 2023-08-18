@@ -136,6 +136,7 @@
                             </div>
                             <span class="error text_fz16 text_fw600"></span>
                         </div>
+                        <input type="text" name="g-recaptcha-response" class="g-recaptcha-response" hidden>
                         <button class="button text_white text_fw600 text_fz16" style="margin-top: 0">
                             Оформить покупку
                         </button>
